@@ -352,7 +352,21 @@ func MicroTask(c *gin.Context) {
 
 	today := time.Now().Format("2006-01-02")
 
-	_, err := services.NewStudentService(db).CompleteTask(req.StudentID, req.ResourceID, today)
+	//外部传的loginNumber
+	ss, err := services.NewStudentService(db).InfoByLogin(req.StudentID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	//外部传入的schedule
+	sd, err := services.NewScheduleService(db).Info(req.ResourceID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err = services.NewStudentService(db).CompleteTask(ss.ID, sd.ResourceID, today)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

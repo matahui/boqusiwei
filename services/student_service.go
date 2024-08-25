@@ -21,6 +21,16 @@ func NewStudentService(db *gorm.DB) *StudentService{
 func (s *StudentService) Info(id uint) (*models.Student, error) {
 	return models.NewStudent().Info(s.DB, id)
 }
+
+func (s *StudentService) InfoByLogin(ln uint) (*models.Student, error) {
+	var st models.Student
+	err := s.DB.Model(&models.Student{}).Where("login_number = ?", ln).Find(&st).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &st, nil
+}
 func (s *StudentService) List(offset, limit int, schoolID, classID uint, name string) ([]*models.Student, error) {
 	return  models.NewStudent().List(s.DB, offset, limit, schoolID, classID, name)
 }

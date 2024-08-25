@@ -204,9 +204,11 @@ func TestMicroSelf(t *testing.T) {
 
 func TestMicroHome(t *testing.T) {
 	// POST 请求示例
+	url := "http://121.37.191.233:9123/api/micro/home?login_number=222555888"
 	postParams := utils.RequestParams{
 		Method: "GET",
-		URL:    "http://127.0.0.1:9123/api/micro/home?login_number=222555888",
+		//URL:    "http://127.0.0.1:9123/api/micro/home?login_number=222555888",
+		URL : url,
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 			"Authorization" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMjIyNTU1ODg4IiwiZXhwIjoxNzI2ODE5NzMyLCJqdGkiOiIzMjhiN2E0Mi01NGVjLTRkZjEtODFjNi00NzAzMjE2M2I2NWUifQ.P-kiblLCreO1CSqGoiFymQgZ_rUcl6BGiyeiknUTYrM",
@@ -232,8 +234,8 @@ func TestMicroTask(t *testing.T) {
 			"Authorization" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiMjIyNTU1ODg4IiwiZXhwIjoxNzI2ODE5NzMyLCJqdGkiOiIzMjhiN2E0Mi01NGVjLTRkZjEtODFjNi00NzAzMjE2M2I2NWUifQ.P-kiblLCreO1CSqGoiFymQgZ_rUcl6BGiyeiknUTYrM",
 		},
 		Body: map[string]interface{}{
-			"student_id": 1000003,
-			"resource_id" : 2,
+			"student_id": 222555888,
+			"resource_id" : 9,
 		},
 	}
 

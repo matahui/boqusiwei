@@ -9,9 +9,11 @@ import (
 
 func TestAccountLogin(t *testing.T) {
 	// POST 请求示例
+	url := "http://121.37.191.233:9123/api/login"
+	//localUrl := "http://127.0.0.1:9123/api/login"
 	postParams := utils.RequestParams{
 		Method: "POST",
-		URL:    "http://127.0.0.1:9123/api/login",
+		URL:    url,
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},

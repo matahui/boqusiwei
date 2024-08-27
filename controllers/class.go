@@ -18,37 +18,55 @@ func ClassList(c *gin.Context) {
 		name = c.Query("name")
 		sid = c.Query("school_id")
 		cid = c.Query("class_id")
-		pageStr = c.DefaultQuery("page", "1")
-		pageSizeStr = c.DefaultQuery("pageSize", "10")
+		pageStr = c.Query("page")
+		pageSizeStr = c.Query("pageSize")
 		db = config.GetDB()
 		schoolID int
 		classID int
+		page int
+		pageSize int
 	)
 
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
-	pageSize, err := strconv.Atoi(pageSizeStr)
-	if err != nil || pageSize < 1 {
-		pageSize = 10
-	}
-
-	if sid != "" {
-		schoolID, err = strconv.Atoi(sid)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,学校ID不正确"})
+	if pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			consts.RespondWithError(c, -2, "参数错误")
 			return
 		}
+
+		page = p
+	}
+
+	if pageSizeStr != "" {
+		pz, err := strconv.Atoi(pageSizeStr)
+		if err != nil || pz < 1 {
+			consts.RespondWithError(c, -2, "参数错误")
+			return
+		}
+
+		pageSize = pz
+	}
+
+
+	if sid != "" {
+		si, err := strconv.Atoi(sid)
+		if err != nil {
+			consts.RespondWithError(c, -2, "参数错误")
+			return
+		}
+
+		schoolID = si
 	}
 
 	if cid != "" {
-		classID, err = strconv.Atoi(cid)
+		ci, err := strconv.Atoi(cid)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,班级ID不正确"})
+			consts.RespondWithError(c, -2, "参数错误")
 			return
 		}
+
+		classID = ci
 
 	}
 
@@ -65,7 +83,7 @@ func ClassList(c *gin.Context) {
 		return
 	}
 
-	for _, v := range st {
+	for _, v := range st.Class {
 		sids = append(sids, v.SchoolID)
 	}
 
@@ -76,24 +94,27 @@ func ClassList(c *gin.Context) {
 	}
 
 
-	for i := 0; i < len(st); i++ {
+	for i := 0; i < len(st.Class); i++ {
 		result = append(result, &models.ClassShow{
-			ID:         st[i].ID,
-			CustomID:   fmt.Sprintf("C%06d", st[i].ID),
-			ClassName:  st[i].ClassName,
-			SchoolID:   st[i].SchoolID,
-			SchoolName: sc[st[i].SchoolID].Name,
-			CreateTime: st[i].CreateTime,
-			UpdateTime: st[i].UpdateTime,
-			IsDelete:   st[i].IsDelete,
+			ID:         st.Class[i].ID,
+			CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),
+			ClassName:  st.Class[i].ClassName,
+			SchoolID:   st.Class[i].SchoolID,
+			SchoolName: sc[st.Class[i].SchoolID].Name,
+			CreateTime: st.Class[i].CreateTime,
+			UpdateTime: st.Class[i].UpdateTime,
+			IsDelete:   st.Class[i].IsDelete,
 		})
 	}
 
-	// Return the JWT token in the response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "获取数据成功",
+		"message": "成功",
 		"code" : 0,
-		"data" : result,
+		"data" : services.ClassListRespShow{
+			Class: result,
+			Total: st.Total,
+			Page:  st.Page,
+		},
 	})
 }
 
@@ -177,29 +198,48 @@ func ClassDelete(c *gin.Context)  {
 }
 
 
+type ClassAddReq struct {
+	SchoolID uint `json:"school_id"`
+	ClassName []string `json:"class_name"`
+}
+
 func ClassAdd(c *gin.Context)  {
 	var (
 		db = config.GetDB()
 	)
 
 
-	var req models.Class
+	var req ClassAddReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -2, "参数错误")
 		return
 	}
 
-	err := services.NewClassService(db).Add(&req)
+	if len(req.ClassName) <= 0 {
+		consts.RespondWithError(c, -2, "参数错误")
+		return
+	}
+
+	cla := make([]*models.Class, 0)
+	for _, v := range req.ClassName {
+		cla = append(cla, &models.Class{
+			ClassName:  v,
+			SchoolID:   req.SchoolID,
+		})
+	}
+
+	err := services.NewClassService(db).Add(cla)
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -3, "内部异常")
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "班级数据添加成功",
+		"message": "成功",
 		"code" : 0,
+		"data" : len(cla),
 	})
 }
 

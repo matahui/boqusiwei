@@ -41,39 +41,50 @@ func (S *Resource)Info(db *gorm.DB, id uint) (*Resource, error) {
 	return &st, nil
 }
 
-func (S *Resource) List(db *gorm.DB, offset, limit int, lv1, lv2, name string) ([]*Resource, error) {
-	var(
-		st []*Resource
+func (S *Resource) List(db *gorm.DB, offset, limit int, lv1, lv2, name string) ([]*Resource, int64, int64, error) {
+	var (
+		sc []*Resource
 		total int64
+		page int64
 	)
 
-	query := db.Model(&Resource{}).Where("is_delete = ?", 0)
+	query := db.Model(&Resource{}).Where("is_delete = 0 ")
 
-	if lv1 != ""  {
+	if lv1  != ""   {
 		query = query.Where("level_1 = ?", lv1)
 	}
 
-	if lv2 != "" {
+	if lv2  != ""   {
 		query = query.Where("level_2 = ?", lv2)
 	}
 
 	if name != "" {
-		query = query.Where("course LIKE ?", "%"+name+"%")
+		query = query.Where("resource_name LIKE ?", "%"+name+"%")
+	}
+
+	//总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, 0, err
 	}
 
 	if limit > 0 {
-		result := query.Count(&total).Offset(offset).Limit(limit).Find(&st)
-		if result.Error != nil {
-			return nil, result.Error
+		err := query.Limit(limit).Offset(offset).Find(&sc).Error
+		if err != nil {
+			return nil, 0, 0, err
 		}
-	} else {
-		result := query.Count(&total).Find(&st)
-		if result.Error != nil {
-			return nil, result.Error
-		}
+
+		page = (total + int64(limit) - 1) / int64(limit)
+
+		return sc, total, page ,nil
 	}
 
-	return st, nil
+
+	err := query.Find(&sc).Error
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	return sc, total, page ,nil
 }
 
 func (S *Resource) Update(db *gorm.DB, id uint, st *Resource) error {

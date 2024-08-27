@@ -20,38 +20,54 @@ func TeacherList(c *gin.Context) {
 		name = c.Query("name")
 		sid = c.Query("school_id")
 		cid = c.Query("class_id")
-		pageStr = c.DefaultQuery("page", "1")
-		pageSizeStr = c.DefaultQuery("pageSize", "10")
+		pageStr = c.Query("page")
+		pageSizeStr = c.Query("pageSize")
 		db = config.GetDB()
 		schoolID int
 		classID int
+		page int
+		pageSize int
 	)
 
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
+	if pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		page = p
 	}
-	pageSize, err := strconv.Atoi(pageSizeStr)
-	if err != nil || pageSize < 1 {
-		pageSize = 10
+
+	if pageSizeStr != "" {
+		pz, err := strconv.Atoi(pageSizeStr)
+		if err != nil || pz < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		pageSize = pz
 	}
 
 	if sid != "" {
-		schoolID, err = strconv.Atoi(sid)
+		sid, err := strconv.Atoi(sid)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,学校ID不正确"})
+			consts.RespondWithError(c, -2, "参数异常")
 			return
 		}
+
+		schoolID = sid
 	}
 
 	if cid != "" {
-		classID, err = strconv.Atoi(cid)
+		cid, err := strconv.Atoi(cid)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,班级ID不正确"})
+			consts.RespondWithError(c, -2, "参数异常")
 			return
 		}
 
+		classID = cid
 	}
 
 	var (
@@ -63,41 +79,43 @@ func TeacherList(c *gin.Context) {
 
 	st, err := services.NewTeacherService(db).List(offset, limit, uint(schoolID), uint(classID), name)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -2, "内部异常")
 		return
 	}
 
-	for _, v := range st {
+	for _, v := range st.Teacher {
 		sids = append(sids, v.SchoolID)
 	}
 
 	sc, err := services.NewSchoolService(db).FindByID(sids)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -2, "内部异常")
 		return
 	}
 
 
-	for i := 0; i < len(st); i++ {
+
+
+	for i := 0; i < len(st.Teacher); i++ {
 		ts := &models.TeacherShow{
-			ID:            st[i].ID,
-			CustomID:      fmt.Sprintf("L%07d", st[i].ID),
-			LoginNumber:   st[i].LoginNumber,
-			TeacherName:   st[i].TeacherName,
-			PhoneNumber:   st[i].PhoneNumber,
-			SchoolID:      st[i].SchoolID,
-			SchoolName:    sc[st[i].SchoolID].Name,
-			Role:          st[i].Role,
-			RoleName:      consts.TeacherRole[st[i].Role],
+			ID:            st.Teacher[i].ID,
+			CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
+			LoginNumber:   st.Teacher[i].LoginNumber,
+			TeacherName:   st.Teacher[i].TeacherName,
+			PhoneNumber:   st.Teacher[i].PhoneNumber,
+			SchoolID:      st.Teacher[i].SchoolID,
+			SchoolName:    sc[st.Teacher[i].SchoolID].Name,
+			Role:          st.Teacher[i].Role,
+			RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 			TeachingClass: make([]*models.TeachClass, 0),
-			IsDelete:      st[i].IsDelete,
-			CreateTime:    st[i].CreateTime,
-			UpdateTime:    st[i].UpdateTime,
+			IsDelete:      st.Teacher[i].IsDelete,
+			CreateTime:    st.Teacher[i].CreateTime,
+			UpdateTime:    st.Teacher[i].UpdateTime,
 		}
 
 
 		//确定老师教授班级
-		ci, _ := services.NewTeacherService(db).FindClassInfoByT(st[i].ID)
+		ci, _ := services.NewTeacherService(db).FindClassInfoByT(st.Teacher[i].ID)
 		for _, v := range ci {
 			ts.TeachingClass = append(ts.TeachingClass, &models.TeachClass{
 				ID:   v.ID,
@@ -112,7 +130,11 @@ func TeacherList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "获取数据成功",
 		"code" : 0,
-		"data" : result,
+		"data" : &services.TeacherListRespShow{
+			Teacher: result,
+			Total:   st.Total,
+			Page:    st.Page,
+		},
 	})
 }
 
@@ -124,17 +146,17 @@ func TeacherUpdate(c *gin.Context) {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -2, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -2, "参数异常")
 		return
 	} else {
 		st, err := services.NewTeacherService(db).Info(req.ID)
 		if st == nil || st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该老师数据"})
+			consts.RespondWithError(c, -2, "内部异常")
 			return
 		}
 	}
@@ -149,7 +171,7 @@ func TeacherUpdate(c *gin.Context) {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -2, "内部异常")
 		return
 	}
 
@@ -233,7 +255,7 @@ func TeacherAdd(c *gin.Context)  {
 
 	var req TeacherAddReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -2, "参数异常")
 		return
 	}
 
@@ -247,12 +269,12 @@ func TeacherAdd(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -3, "内部异常")
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "学校数据添加成功",
+		"message": "成功",
 		"code" : 0,
 	})
 }

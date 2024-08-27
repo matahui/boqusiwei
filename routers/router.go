@@ -24,6 +24,7 @@ func SetupRouters(r *gin.Engine) {
 		school.POST("/add", controllers.SchoolAdd)
 		school.GET("/regionList", controllers.RegionList)
 		school.POST("/regionAdd", controllers.RegionAdd)
+		school.GET("/class", controllers.SchoolClass)
 	}
 
 	student := r.Group("/api/student")

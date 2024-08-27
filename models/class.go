@@ -42,10 +42,11 @@ func (S *Class)Info(db *gorm.DB, id uint) (*Class, error) {
 	return &st, nil
 }
 
-func (S *Class) List(db *gorm.DB, offset, limit int, schoolID, classID uint, name string) ([]*Class, error) {
+func (S *Class) List(db *gorm.DB, offset, limit int, schoolID, classID uint, name string) ([]*Class, int64, int64, error) {
 	var(
 		st []*Class
 		total int64
+		page int64
 	)
 
 	query := db.Model(&Class{}).Where("is_delete = ?", 0)
@@ -57,16 +58,33 @@ func (S *Class) List(db *gorm.DB, offset, limit int, schoolID, classID uint, nam
 	if classID > 0 {
 		query = query.Where("id = ?", classID)
 	}
+
 	if name != "" {
 		query = query.Where("class_name LIKE ?", "%"+name+"%")
 	}
 
-	result := query.Count(&total).Offset(offset).Limit(limit).Find(&st)
-	if result.Error != nil {
-		return nil, result.Error
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, 0, err
 	}
 
-	return st, nil
+	if limit > 0 {
+		err := query.Limit(limit).Offset(offset).Find(&st).Error
+		if err != nil {
+			return nil, 0, 0, err
+		}
+
+		page = (total + int64(limit) - 1) / int64(limit)
+
+		return st, total, page ,nil
+	}
+
+
+	err := query.Find(&st).Error
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	return st, total, page ,nil
 }
 
 func (S *Class) Update(db *gorm.DB, id uint, st *Class) error {
@@ -78,7 +96,7 @@ func (S *Class) Update(db *gorm.DB, id uint, st *Class) error {
 	return nil
 }
 
-func (S *Class) Add(db *gorm.DB, st *Class) error {
+func (S *Class) Add(db *gorm.DB, st []*Class) error {
 	result := db.Create(st)
 	if result.Error != nil {
 		return fmt.Errorf("Class add error")
@@ -94,4 +112,14 @@ func (S *Class) BatchInsert(db *gorm.DB, sts []*Class) (int, error) {
 	}
 
 	return int(result.RowsAffected), nil
+}
+
+func (S *Class) FindByID(db *gorm.DB, ids []uint) ([]*Class, error) {
+	var sc []*Class
+	result := db.Where("id in ?", ids).Find(&sc)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return sc, nil
 }

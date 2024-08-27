@@ -21,14 +21,41 @@ func NewSchool() *School {
 	return &School{}
 }
 
-func (S *School) List(db *gorm.DB, offset, limit int) ([]*School, error) {
-	var sc []*School
-	result := db.Where("is_delete = 0 ").Offset(offset).Limit(limit).Find(&sc)
-	if result.Error != nil {
-		return nil , result.Error
+func (S *School) List(db *gorm.DB, offset, limit int, name string) ([]*School, int64, int64, error) {
+	var (
+		sc []*School
+		total int64
+		page int64
+	)
+
+	query := db.Model(&School{}).Where("is_delete = 0 ")
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+name+"%")
 	}
 
-	return sc, nil
+	//总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, 0, err
+	}
+
+	if limit > 0 {
+		err := query.Limit(limit).Offset(offset).Find(&sc).Error
+		if err != nil {
+			return nil, 0, 0, err
+		}
+
+		page = (total + int64(limit) - 1) / int64(limit)
+
+		return sc, total, page ,nil
+	}
+
+
+	err := query.Find(&sc).Error
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	return sc, total, page ,nil
 }
 
 func (S *School) QueryByName(db *gorm.DB, name string) ([]*School, error)  {

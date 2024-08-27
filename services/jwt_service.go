@@ -3,10 +3,11 @@ package services
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+	"homeschooledu/consts"
 	"time"
 )
 
-var jwtSecret = []byte("secret_key")
+var jwtSecret = []byte(consts.JWTSecretKey)
 
 type Claims struct {
 	AccountID string   `json:"account_id"`

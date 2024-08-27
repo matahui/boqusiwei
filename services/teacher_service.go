@@ -20,8 +20,31 @@ func NewTeacherService(db *gorm.DB) *TeacherService{
 func (s *TeacherService) Info(id uint) (*models.Teacher, error) {
 	return models.NewTeacher().Info(s.DB, id)
 }
-func (s *TeacherService) List(offset, limit int, schoolID, classID uint, name string) ([]*models.Teacher, error) {
-	return  models.NewTeacher().List(s.DB, offset, limit, schoolID, classID, name)
+
+type TeacherListResp struct {
+	Teacher []*models.Teacher `json:"teacher"`
+	Total  int64  `json:"total"`
+	Page   int64  `json:"page"`
+}
+
+type TeacherListRespShow struct {
+	Teacher []*models.TeacherShow`json:"teacher"`
+	Total  int64  `json:"total"`
+	Page   int64  `json:"page"`
+}
+
+
+func (s *TeacherService) List(offset, limit int, schoolID, classID uint, name string) (*TeacherListResp, error) {
+	 st, total, page, err := models.NewTeacher().List(s.DB, offset, limit, schoolID, classID, name)
+	 if err != nil {
+	 	return nil, err
+	 }
+
+	 return &TeacherListResp{
+		 Teacher: st,
+		 Total:   total,
+		 Page:    page,
+	 }, nil
 }
 
 

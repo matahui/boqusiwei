@@ -18,8 +18,24 @@ func NewResourceService(db *gorm.DB) *ResourceService{
 func (s *ResourceService) Info(id uint) (*models.Resource, error) {
 	return models.NewResource().Info(s.DB, id)
 }
-func (s *ResourceService) List(offset, limit int, lv1, lv2, name string) ([]*models.Resource, error) {
-	return  models.NewResource().List(s.DB, offset, limit, lv1, lv2, name)
+
+type ResourceListResp struct {
+	Resource []*models.Resource `json:"resource"`
+	Total int64 `json:"total"`
+	Page int64 `json:"page"`
+}
+
+func (s *ResourceService) List(offset, limit int, lv1, lv2, name string) (*ResourceListResp, error) {
+	re, total, page, err := models.NewResource().List(s.DB, offset, limit, lv1, lv2, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ResourceListResp{
+		Resource: re,
+		Total:    total,
+		Page:     page,
+	}, nil
 }
 
 

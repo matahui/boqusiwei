@@ -19,48 +19,61 @@ type StudentLoginRequest struct {
 	Password string `json:"password" binding:"required,min=6"`          // 密码，至少8位
 }
 
+type AccountLoginResponse struct {
+	Token string `json:"token"`
+	Type int    `json:"type"`
+	Account string `json:"account"`
+}
+
+type StudentLoginResponse struct {
+	Token string `json:"token"`
+	LoginNumber int64 `json:"login_number"`
+}
+
 func Login(c *gin.Context) {
 	var req AccountLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -1, "参数错误")
 		return
 	}
 
 
 	lc, err, code := services.NewAccountService(config.GetDB()).Login(req.Account, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[code]})
+		consts.RespondWithError(c, -2, "内部处理异常")
 		return
 	}
 
 	//获取token
 	token, err := services.GenerateToken(req.Account)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		consts.RespondWithError(c, -2, "内部处理异常")
 		return
 	}
 
 	// Return the JWT token in the response
 	c.JSON(http.StatusOK, gin.H{
+		"code" : 0,
 		"message": consts.CodeMsg[code],
-		"token":   token,
-		"type" : lc.Cate,
-		"account" : lc.Account,
+		"data" : &AccountLoginResponse{
+			Token:   token,
+			Type:    int(lc.Cate),
+			Account: lc.Account,
+		},
 	})
-
 }
 
 func StudentLogin(c *gin.Context) {
 	var req StudentLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -1, "参数错误")
 		return
 	}
 
 
 	err:= services.NewStudentService(config.GetDB()).Login(req.LoginNumber, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -2, "内部处理异常")
 		return
 	}
 
@@ -68,15 +81,16 @@ func StudentLogin(c *gin.Context) {
 	ln := strconv.Itoa(int(req.LoginNumber))
 	token, err := services.GenerateToken(ln)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		consts.RespondWithError(c, -3, "内部处理异常")
 		return
 	}
 
-	// Return the JWT token in the response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "登录成功",
-		"token":   token,
-		"login_number" : req.LoginNumber,
+		"code" : 0,
+		"message": consts.CodeMsg[0],
+		"data" : &StudentLoginResponse{
+			Token:       token,
+			LoginNumber: req.LoginNumber,
+		},
 	})
-
 }

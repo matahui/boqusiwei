@@ -19,21 +19,33 @@ func ResourceList(c *gin.Context) {
 		name = c.Query("name")
 		lv1 = c.Query("level_1")
 		lv2 = c.Query("level_2")
-		pageStr = c.DefaultQuery("page", "1")
-		pageSizeStr = c.DefaultQuery("pageSize", "10")
+		pageStr = c.Query("page")
+		pageSizeStr = c.Query("pageSize")
 		db = config.GetDB()
+		page int
+		pageSize int
 	)
 
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
-	pageSize, err := strconv.Atoi(pageSizeStr)
-	if err != nil || pageSize < 1 {
-		pageSize = 10
+	if pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		page = p
 	}
 
+	if pageSizeStr != "" {
+		pz, err := strconv.Atoi(pageSizeStr)
+		if err != nil || pz < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		pageSize = pz
+	}
 
 
 	var (
@@ -47,8 +59,6 @@ func ResourceList(c *gin.Context) {
 		return
 	}
 
-
-	// Return the JWT token in the response
 	c.JSON(http.StatusOK, gin.H{
 		"message": "获取数据成功",
 		"code" : 0,

@@ -31,8 +31,30 @@ func (s *StudentService) InfoByLogin(ln uint) (*models.Student, error) {
 
 	return &st, nil
 }
-func (s *StudentService) List(offset, limit int, schoolID, classID uint, name string) ([]*models.Student, error) {
-	return  models.NewStudent().List(s.DB, offset, limit, schoolID, classID, name)
+
+type StudentListResp struct {
+	Student []*models.Student `json:"student"`
+	Total  int64  `json:"total"`
+	Page   int64  `json:"page"`
+}
+
+type StudentListRespShow struct {
+	Student []*models.StudentShow`json:"student"`
+	Total  int64  `json:"total"`
+	Page   int64  `json:"page"`
+}
+
+func (s *StudentService) List(offset, limit int, schoolID, classID uint, name string) (*StudentListResp, error) {
+	st, total, page, err := models.NewStudent().List(s.DB, offset, limit, schoolID, classID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &StudentListResp{
+		Student: st,
+		Total:  total,
+		Page:   page,
+	}, nil
 }
 
 
@@ -106,7 +128,12 @@ func (s *StudentService) ProcessStudentFile(filePath string, schoolID, classID u
 }
 
 func (s *StudentService) GetClassStudents(classID uint) ([]*models.Student, error) {
-	return models.NewStudent().List(s.DB, 0, 0, 0, classID, "")
+	st, _, _, err := models.NewStudent().List(s.DB, 0, 0, 0, classID, "")
+	if err != nil {
+		return nil, err
+	}
+
+	return st, nil
 }
 
 func (s *StudentService) Login(ln int64, pwd string) error {

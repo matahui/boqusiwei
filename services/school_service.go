@@ -13,8 +13,23 @@ func NewSchoolService(db *gorm.DB) *SchoolService{
 	return &SchoolService{DB:db}
 }
 
-func (s *SchoolService) List(offset, limit int) ([]*models.School, error) {
-	return  models.NewSchool().List(s.DB, offset, limit)
+type SchoolListResp struct {
+	School []*models.School `json:"school"`
+	Total  int64  `json:"total"`
+	Page   int64  `json:"page"`
+}
+
+func (s *SchoolService) List(offset, limit int, name string) (*SchoolListResp, error) {
+	list, total, page, err := models.NewSchool().List(s.DB, offset, limit, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SchoolListResp{
+		School: list,
+		Total:  total,
+		Page:   page,
+	}, nil
 }
 
 func (s *SchoolService) FuzzySearch(name string) ([]*models.School, error)  {
@@ -43,9 +58,20 @@ func (s *SchoolService) FindByID(ids []uint) (map[uint]*models.School, error)  {
 	return r, nil
 }
 
-func (s *SchoolService) FindByAccount(acc string) (*models.School, error) {
-	return models.NewSchool().FindByAccount(s.DB, acc)
+func (s *SchoolService) FindByAccount(acc string) (*SchoolListResp, error) {
+	sc, err := models.NewSchool().FindByAccount(s.DB, acc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SchoolListResp{
+		School: []*models.School{sc},
+		Total:  0,
+		Page:   0,
+	}, nil
 }
+
+
 type RegionService struct {
 	DB *gorm.DB
 }
@@ -54,18 +80,15 @@ func NewRegionService(db *gorm.DB) *RegionService{
 	return &RegionService{DB:db}
 }
 
-func (r *RegionService) List() ([]string, error)  {
-	var regions []string
-	err := r.DB.Model(&models.School{}).
-		Distinct("region").
-		Where("is_delete = ?", 0).
-		Pluck("region", &regions).Error
+func (r *RegionService) List() ([]models.Region, error)  {
+	var re []models.Region
+	err := r.DB.Model(&models.Region{}).Where("is_delete = ? and name != ?", 0, "").Find(&re).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	return regions, nil
+	return re, nil
 }
 
 func (r *RegionService) Add(re *models.Region) error  {

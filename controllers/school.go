@@ -16,14 +16,16 @@ func SchoolList(c *gin.Context) {
 	var (
 		acc = c.GetHeader("account")
 		name = c.Query("name")
-		pageStr = c.DefaultQuery("page", "1")
-		pageSizeStr = c.DefaultQuery("pageSize", "10")
+		pageStr = c.Query("page")
+		pageSizeStr = c.Query("pageSize")
 		db = config.GetDB()
+		page int
+		pageSize int
 	)
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -2, "账号未找到")
 		return
 	}
 
@@ -32,12 +34,12 @@ func SchoolList(c *gin.Context) {
 		if info.Cate == consts.AccountCateDirector {
 			sc, err := services.NewSchoolService(db).FindByAccount(acc)
 			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+				consts.RespondWithError(c, -3, "内部异常")
 				return
 			}
 
-			if sc != nil {
-				sc.CustomId = fmt.Sprintf("Y000%d", sc.ID)
+			if sc != nil && sc.School != nil {
+				sc.School[0].CustomId = fmt.Sprintf("Y000%d", sc.School[0].CustomId)
 			}
 
 			c.JSON(http.StatusOK, gin.H{
@@ -52,47 +54,47 @@ func SchoolList(c *gin.Context) {
 
 
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
+	if pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		page = p
 	}
-	pageSize, err := strconv.Atoi(pageSizeStr)
-	if err != nil || pageSize < 1 {
-		pageSize = 10
+
+	if pageSizeStr != "" {
+		pz, err := strconv.Atoi(pageSizeStr)
+		if err != nil || pz < 1 {
+			consts.RespondWithError(c, -2, "参数异常")
+			return
+		}
+
+		pageSize = pz
 	}
 
 	var (
 		offset = (page-1) * pageSize
 		limit = pageSize
-		sc = make([]*models.School, 0)
 	)
 
-	//获取列表数据
-	if name == "" {
-		//全量查询
-		sc, err = services.NewSchoolService(db).List(offset, limit)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
-			return
-		}
-	} else {
-		//模糊查询
-		sc, err = services.NewSchoolService(db).FuzzySearch(name)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
-			return
-		}
+
+	resp, err := services.NewSchoolService(db).List(offset, limit, name)
+	if err != nil {
+		consts.RespondWithError(c, -2, "内部异常")
+		return
 	}
 
 
-	for i := 0; i < len(sc); i++ {
-		sc[i].CustomId = fmt.Sprintf("Y000%d", sc[i].ID)
+	for i := 0; i < len(resp.School); i++ {
+		resp.School[i].CustomId = fmt.Sprintf("Y000%d", resp.School[i].ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "获取数据成功",
+		"message": "成功",
 		"code" : 0,
-		"data" : sc,
+		"data" : resp,
 	})
 }
 
@@ -254,7 +256,7 @@ func RegionList(c *gin.Context)  {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "获取校区数据成功",
+		"message": "成功",
 		"code" : 0,
 		"data" : re,
 	})
@@ -273,12 +275,12 @@ func RegionAdd(c *gin.Context)  {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -3, "没有该账号信息")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "非管理员账号没有权限"})
+		consts.RespondWithError(c, -3, "非管理员账号没有权限")
 		return
 	}
 
@@ -286,7 +288,7 @@ func RegionAdd(c *gin.Context)  {
 
 	var req AddRegionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -1, "参数异常")
 		return
 	}
 
@@ -295,12 +297,46 @@ func RegionAdd(c *gin.Context)  {
 	}
 	err = services.NewRegionService(db).Add(re)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "添加校区失败"})
+		consts.RespondWithError(c, -2, "添加校区失败")
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "添加校区成功",
+		"message": "成功",
 		"code" : 0,
+	})
+}
+
+
+func SchoolClass(c *gin.Context) {
+	//参数
+	var (
+		school = c.Query("school_id")
+		db = config.GetDB()
+	)
+
+	if school == "" {
+		consts.RespondWithError(c, -1, "参数错误")
+		return
+	}
+
+	schoolId, err := strconv.Atoi(school)
+	if err != nil {
+		consts.RespondWithError(c, -1, "参数错误")
+		return
+	}
+
+	resp, err := services.NewClassService(db).List(0, 0, uint(schoolId), 0, "")
+	if err != nil {
+		consts.RespondWithError(c, -2, "内部异常")
+		return
+	}
+
+
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "成功",
+		"code" : 0,
+		"data" : resp,
 	})
 }

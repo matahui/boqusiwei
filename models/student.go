@@ -70,37 +70,50 @@ func (S *Student)GetByLoginNumber(db *gorm.DB, ln int64) (*Student, error) {
 	return &st, nil
 }
 
-func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, name string) ([]*Student, error) {
-	var(
-		st []*Student
+func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, name string) ([]*Student, int64, int64, error) {
+	var (
+		sc []*Student
 		total int64
+		page int64
 	)
 
-	query := db.Model(&Student{}).Where("is_delete = ?", 0)
+	query := db.Model(&Student{}).Where("is_delete = 0 ")
 
 	if schoolID  > 0  {
 		query = query.Where("school_id = ?", schoolID)
 	}
+
 	if classID > 0 {
 		query = query.Where("class_id = ?", classID)
 	}
+
 	if name != "" {
 		query = query.Where("student_name LIKE ?", "%"+name+"%")
 	}
 
-	if limit > 0 {
-		result := query.Count(&total).Offset(offset).Limit(limit).Find(&st)
-		if result.Error != nil {
-			return nil, result.Error
-		}
-	} else {
-		result := query.Count(&total).Find(&st)
-		if result.Error != nil {
-			return nil, result.Error
-		}
+	//总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, 0, err
 	}
 
-	return st, nil
+	if limit > 0 {
+		err := query.Limit(limit).Offset(offset).Find(&sc).Error
+		if err != nil {
+			return nil, 0, 0, err
+		}
+
+		page = (total + int64(limit) - 1) / int64(limit)
+
+		return sc, total, page ,nil
+	}
+
+
+	err := query.Find(&sc).Error
+	if err != nil {
+		return nil, 0, 0, err
+	}
+
+	return sc, total, page ,nil
 }
 
 func (S *Student) Update(db *gorm.DB, id uint, st *Student) error {

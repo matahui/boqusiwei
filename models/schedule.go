@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"homeschooledu/consts"
 	"time"
 )
 
@@ -14,8 +15,8 @@ type Schedule struct {
 	BeginTime time.Time `gorm:"not null" json:"begin_time"`
 	EndTime   time.Time `gorm:"not null" json:"end_time"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 

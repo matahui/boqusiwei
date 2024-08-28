@@ -3,24 +3,27 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"homeschooledu/consts"
 	"time"
 )
 
 type Teacher struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	LoginNumber int64    `gorm:"type:int64;not null;unique" json:"login_number"`
+	Password   string   `gorm:"type:varchar(255);not null" json:"password"`
 	TeacherName string    `gorm:"type:varchar(255);not null" json:"teacher_name"`
 	PhoneNumber string    `gorm:"type:varchar(255);not null" json:"phone_number"`
 	SchoolID  uint      `gorm:"not null" json:"school_id"`
 	Role      uint      `gorm:"not null" json:"role"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 type TeacherShow struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	CustomID  string    `json:"custom_id"`
+	Password  string    `json:"password"`
 	LoginNumber int64    `gorm:"type:int64;not null;unique" json:"login_number"`
 	TeacherName string    `gorm:"type:varchar(255);not null" json:"teacher_name"`
 	PhoneNumber string    `gorm:"type:varchar(255);not null" json:"phone_number"`
@@ -30,8 +33,8 @@ type TeacherShow struct {
 	RoleName  string    `json:"role_name"`
 	TeachingClass []*TeachClass `json:"teaching_class"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 type TeachClass struct {

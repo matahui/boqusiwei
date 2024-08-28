@@ -35,7 +35,7 @@ func StudentList(c *gin.Context) {
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -45,7 +45,7 @@ func StudentList(c *gin.Context) {
 	if pageSizeStr != "" {
 		pz, err := strconv.Atoi(pageSizeStr)
 		if err != nil || pz < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -55,7 +55,7 @@ func StudentList(c *gin.Context) {
 	if sid != "" {
 		sid, err := strconv.Atoi(sid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -65,7 +65,7 @@ func StudentList(c *gin.Context) {
 	if cid != "" {
 		cid, err := strconv.Atoi(cid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -82,7 +82,7 @@ func StudentList(c *gin.Context) {
 
 	st, err := services.NewStudentService(db).List(offset, limit, uint(schoolID), uint(classID), name)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -93,13 +93,13 @@ func StudentList(c *gin.Context) {
 
 	sc, err := services.NewSchoolService(db).FindByID(sids)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	cl, err := services.NewClassService(db).FindByID(cids)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -127,8 +127,8 @@ func StudentList(c *gin.Context) {
 			ClassName:   className,
 			SchoolName:  sc[st.Student[i].SchoolID].Name,
 			IsDelete:    st.Student[i].IsDelete,
-			CreateTime:  st.Student[i].CreateTime,
-			UpdateTime:  st.Student[i].UpdateTime,
+			CreateTime: st.Student[i].CreateTime,
+			UpdateTime: st.Student[i].UpdateTime,
 		})
 	}
 
@@ -151,17 +151,17 @@ func StudentUpdate(c *gin.Context) {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		st, err := services.NewStudentService(db).Info(req.ID)
 		if st == nil || st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该学生数据"})
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 	}
@@ -177,7 +177,7 @@ func StudentUpdate(c *gin.Context) {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -194,17 +194,17 @@ func StudentDelete(c *gin.Context)  {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		st, err := services.NewStudentService(db).Info(req.ID)
 		if st == nil || st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该学生数据"})
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 	}
@@ -216,7 +216,7 @@ func StudentDelete(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -235,15 +235,13 @@ func StudentAdd(c *gin.Context)  {
 
 	var req models.Student
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	err := services.NewStudentService(db).Add(&req)
-
-
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -262,7 +260,7 @@ func StudentBatchAdd(c *gin.Context) {
 
 	sid := c.PostForm("school_id")
 	if sid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "未选择学校"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		schoolID, _ = strconv.Atoi(sid)
@@ -271,7 +269,7 @@ func StudentBatchAdd(c *gin.Context) {
 	// 校验是否选择了班级
 	cid := c.PostForm("class_id")
 	if cid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "未选择班级"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		classID, _ = strconv.Atoi(cid)
@@ -280,27 +278,27 @@ func StudentBatchAdd(c *gin.Context) {
 	// 处理文件上传
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请先上传文件"})
+		consts.RespondWithError(c, -6, "参数异常,先上传文件file")
 		return
 	}
 
 	// 验证文件扩展名
 	if err := utils.ValidateFileExtension(file); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "文件格式不正确")
 		return
 	}
 
 	// 保存文件到服务器本地
 	dst := filepath.Join("uploads", file.Filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件保存失败"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	// 解析文件内容并处理导入逻辑（假设已经实现）
 	n, err := services.NewStudentService(db).ProcessStudentFile(dst, uint(schoolID), uint(classID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -324,13 +322,13 @@ func MicroSelf(c *gin.Context) {
 
 	ln, err := strconv.Atoi(loginNumber)
 	if err != nil  {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,学校ID不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	ps, err := services.NewStudentService(db).GetStudentPoints(int64(ln))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -353,13 +351,13 @@ func MicroRank(c *gin.Context) {
 
 	classID, err := strconv.Atoi(cid)
 	if err != nil  {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,班级不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	ps, err := services.NewStudentService(db).GetClassRanking(uint(classID))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -384,7 +382,7 @@ func MicroTask(c *gin.Context) {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -393,20 +391,20 @@ func MicroTask(c *gin.Context) {
 	//外部传的loginNumber
 	ss, err := services.NewStudentService(db).InfoByLogin(req.StudentID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	//外部传入的schedule
 	sd, err := services.NewScheduleService(db).Info(req.ResourceID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	_, err = services.NewStudentService(db).CompleteTask(ss.ID, sd.ResourceID, today)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 

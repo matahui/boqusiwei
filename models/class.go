@@ -3,15 +3,15 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"time"
+	"homeschooledu/consts"
 )
 
 type Class struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	ClassName      string    `gorm:"type:varchar(100);not null" json:"class_name"`
 	SchoolID  uint      `gorm:"not null" json:"school_id"`
-	CreateTime  time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
-	UpdateTime  time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
+	CreateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	UpdateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
 	IsDelete    int            `gorm:"not null;default:0" json:"is_delete"`
 }
 
@@ -22,8 +22,8 @@ type ClassShow struct {
 	ClassName      string    `gorm:"type:varchar(100);not null" json:"class_name"`
 	SchoolID  uint      `gorm:"not null" json:"school_id"`
 	SchoolName string `json:"school_name"`
-	CreateTime  time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
-	UpdateTime  time.Time      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
+	CreateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	UpdateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
 	IsDelete    int            `gorm:"not null;default:0" json:"is_delete"`
 }
 

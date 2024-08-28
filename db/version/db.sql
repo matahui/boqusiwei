@@ -97,6 +97,7 @@ CREATE TABLE `student_points` (
 CREATE TABLE teachers (
      `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
      `login_number` BIGINT(20) NOT NULL COMMENT '登录账号',
+     `password` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '登录密码',
      `teacher_name` VARCHAR(50) NOT NULL COMMENT '老师姓名',
      `phone_number` VARCHAR(20) COMMENT '电话号码',
      `role` tinyint NOT NULL COMMENT '角色,园长1 教师2',

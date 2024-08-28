@@ -31,7 +31,7 @@ func ClassList(c *gin.Context) {
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			consts.RespondWithError(c, -2, "参数错误")
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 
@@ -41,7 +41,7 @@ func ClassList(c *gin.Context) {
 	if pageSizeStr != "" {
 		pz, err := strconv.Atoi(pageSizeStr)
 		if err != nil || pz < 1 {
-			consts.RespondWithError(c, -2, "参数错误")
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 
@@ -52,7 +52,7 @@ func ClassList(c *gin.Context) {
 	if sid != "" {
 		si, err := strconv.Atoi(sid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数错误")
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 
@@ -62,7 +62,7 @@ func ClassList(c *gin.Context) {
 	if cid != "" {
 		ci, err := strconv.Atoi(cid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数错误")
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 
@@ -79,7 +79,7 @@ func ClassList(c *gin.Context) {
 
 	st, err := services.NewClassService(db).List(offset, limit, uint(schoolID), uint(classID), name)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -89,7 +89,7 @@ func ClassList(c *gin.Context) {
 
 	sc, err := services.NewSchoolService(db).FindByID(sids)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -126,17 +126,17 @@ func ClassUpdate(c *gin.Context) {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	} else {
 		st, err := services.NewClassService(db).Info(req.ID)
 		if st == nil || st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该班级数据"})
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 	}
@@ -148,7 +148,7 @@ func ClassUpdate(c *gin.Context) {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -165,17 +165,17 @@ func ClassDelete(c *gin.Context)  {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	} else {
 		st, err := services.NewClassService(db).Info(req.ID)
 		if st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该学生数据"})
+			consts.RespondWithError(c, -6, "参数错误")
 			return
 		}
 	}
@@ -187,7 +187,7 @@ func ClassDelete(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 

@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"time"
+	"homeschooledu/consts"
 )
 
 type School struct {
@@ -13,8 +13,8 @@ type School struct {
 	Account   string    `gorm:"type:varchar(100);not null" json:"account"`
 	CustomId  string    `gorm:"type:varchar(100);not null" json:"custom_id"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 func NewSchool() *School {
@@ -112,8 +112,8 @@ type Region struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `gorm:"type:varchar(100);not null" json:"name"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 func NewRegion() *Region {

@@ -25,7 +25,7 @@ func SchoolList(c *gin.Context) {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		consts.RespondWithError(c, -2, "账号未找到")
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
@@ -34,12 +34,12 @@ func SchoolList(c *gin.Context) {
 		if info.Cate == consts.AccountCateDirector {
 			sc, err := services.NewSchoolService(db).FindByAccount(acc)
 			if err != nil {
-				consts.RespondWithError(c, -3, "内部异常")
+				consts.RespondWithError(c, -20, "内部异常")
 				return
 			}
 
 			if sc != nil && sc.School != nil {
-				sc.School[0].CustomId = fmt.Sprintf("Y000%d", sc.School[0].CustomId)
+				sc.School[0].CustomId = fmt.Sprintf("Y000%d", sc.School[0].ID)
 			}
 
 			c.JSON(http.StatusOK, gin.H{
@@ -57,7 +57,7 @@ func SchoolList(c *gin.Context) {
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -67,7 +67,7 @@ func SchoolList(c *gin.Context) {
 	if pageSizeStr != "" {
 		pz, err := strconv.Atoi(pageSizeStr)
 		if err != nil || pz < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -82,7 +82,7 @@ func SchoolList(c *gin.Context) {
 
 	resp, err := services.NewSchoolService(db).List(offset, limit, name)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -112,18 +112,18 @@ func SchoolUpdate(c *gin.Context) {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "非管理员账号没有权限"})
+		consts.RespondWithError(c, -6, "非管理员账号没有权限")
 		return
 	}
 
 	var req UpdateSchoolRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -134,7 +134,7 @@ func SchoolUpdate(c *gin.Context) {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -152,18 +152,18 @@ func SchoolDelete(c *gin.Context)  {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "非管理员账号没有权限"})
+		consts.RespondWithError(c, -6, "非管理员账号没有权限")
 		return
 	}
 
 	var req UpdateSchoolRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -173,7 +173,7 @@ func SchoolDelete(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -197,18 +197,18 @@ func SchoolAdd(c *gin.Context)  {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "非管理员账号没有权限"})
+		consts.RespondWithError(c, -6, "非管理员账号没有权限")
 		return
 	}
 
 	var req AddSchoolRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -220,7 +220,7 @@ func SchoolAdd(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -238,20 +238,19 @@ func RegionList(c *gin.Context)  {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "account不正确"})
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "非管理员账号没有权限"})
+		consts.RespondWithError(c, -6, "非管理员账号没有权限")
 		return
 	}
 
 
-
 	re, err := services.NewRegionService(db).List()
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取校区数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -275,12 +274,12 @@ func RegionAdd(c *gin.Context)  {
 
 	info, err := services.NewAccountService(db).Info(acc)
 	if err != nil {
-		consts.RespondWithError(c, -3, "没有该账号信息")
+		consts.RespondWithError(c, -6, "参数异常,账号不存在")
 		return
 	}
 
 	if info.Cate != consts.AccountCateAdmin {
-		consts.RespondWithError(c, -3, "非管理员账号没有权限")
+		consts.RespondWithError(c, -6, "非管理员账号没有权限")
 		return
 	}
 
@@ -288,16 +287,17 @@ func RegionAdd(c *gin.Context)  {
 
 	var req AddRegionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		consts.RespondWithError(c, -1, "参数异常")
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	re := &models.Region{
 		Name:       req.Name,
 	}
+
 	err = services.NewRegionService(db).Add(re)
 	if err != nil {
-		consts.RespondWithError(c, -2, "添加校区失败")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -316,19 +316,19 @@ func SchoolClass(c *gin.Context) {
 	)
 
 	if school == "" {
-		consts.RespondWithError(c, -1, "参数错误")
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	}
 
 	schoolId, err := strconv.Atoi(school)
 	if err != nil {
-		consts.RespondWithError(c, -1, "参数错误")
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	}
 
 	resp, err := services.NewClassService(db).List(0, 0, uint(schoolId), 0, "")
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 

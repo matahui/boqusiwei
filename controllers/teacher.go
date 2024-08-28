@@ -33,7 +33,7 @@ func TeacherList(c *gin.Context) {
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -43,7 +43,7 @@ func TeacherList(c *gin.Context) {
 	if pageSizeStr != "" {
 		pz, err := strconv.Atoi(pageSizeStr)
 		if err != nil || pz < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -53,7 +53,7 @@ func TeacherList(c *gin.Context) {
 	if sid != "" {
 		sid, err := strconv.Atoi(sid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -63,7 +63,7 @@ func TeacherList(c *gin.Context) {
 	if cid != "" {
 		cid, err := strconv.Atoi(cid)
 		if err != nil {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -79,7 +79,7 @@ func TeacherList(c *gin.Context) {
 
 	st, err := services.NewTeacherService(db).List(offset, limit, uint(schoolID), uint(classID), name)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -89,11 +89,9 @@ func TeacherList(c *gin.Context) {
 
 	sc, err := services.NewSchoolService(db).FindByID(sids)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
-
-
 
 
 	for i := 0; i < len(st.Teacher); i++ {
@@ -101,6 +99,7 @@ func TeacherList(c *gin.Context) {
 			ID:            st.Teacher[i].ID,
 			CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
 			LoginNumber:   st.Teacher[i].LoginNumber,
+			Password:      st.Teacher[i].Password,
 			TeacherName:   st.Teacher[i].TeacherName,
 			PhoneNumber:   st.Teacher[i].PhoneNumber,
 			SchoolID:      st.Teacher[i].SchoolID,
@@ -109,8 +108,8 @@ func TeacherList(c *gin.Context) {
 			RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 			TeachingClass: make([]*models.TeachClass, 0),
 			IsDelete:      st.Teacher[i].IsDelete,
-			CreateTime:    st.Teacher[i].CreateTime,
-			UpdateTime:    st.Teacher[i].UpdateTime,
+			CreateTime: st.Teacher[i].CreateTime,
+			UpdateTime: st.Teacher[i].UpdateTime,
 		}
 
 
@@ -146,17 +145,17 @@ func TeacherUpdate(c *gin.Context) {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		consts.RespondWithError(c, -2, "参数异常")
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		consts.RespondWithError(c, -2, "参数异常")
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		st, err := services.NewTeacherService(db).Info(req.ID)
 		if st == nil || st.ID <= 0 || err != nil {
-			consts.RespondWithError(c, -2, "内部异常")
+			consts.RespondWithError(c, -20, err.Error())
 			return
 		}
 	}
@@ -171,13 +170,14 @@ func TeacherUpdate(c *gin.Context) {
 
 
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	//处理关系变更
 	err = services.NewTeacherClassAssignmentService(db).Update(req.ID, req.ClassID)
 	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -194,17 +194,17 @@ func TeacherDelete(c *gin.Context)  {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		st, err := services.NewTeacherService(db).Info(req.ID)
 		if st.ID <= 0 || err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,无该学生数据"})
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 	}
@@ -216,14 +216,14 @@ func TeacherDelete(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	//关联授课信息
 	n, err := services.NewTeacherClassAssignmentService(db).DeleteTeacher(req.ID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "老师授课信息删除失败"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -255,12 +255,13 @@ func TeacherAdd(c *gin.Context)  {
 
 	var req TeacherAddReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		consts.RespondWithError(c, -2, "参数异常")
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	err := services.NewTeacherService(db).Add(&models.Teacher{
 		LoginNumber: req.LoginNumber,
+		Password: req.Password,
 		TeacherName: req.Name,
 		PhoneNumber: req.PhoneNumber,
 		SchoolID:    req.SchoolID,
@@ -269,7 +270,7 @@ func TeacherAdd(c *gin.Context)  {
 
 
 	if err != nil {
-		consts.RespondWithError(c, -3, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -288,7 +289,7 @@ func TeacherBatchAdd(c *gin.Context) {
 
 	sid := c.PostForm("school_id")
 	if sid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "未选择学校"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		schoolID, _ = strconv.Atoi(sid)
@@ -297,7 +298,7 @@ func TeacherBatchAdd(c *gin.Context) {
 	// 校验是否选择了班级
 	cid := c.PostForm("class_id")
 	if cid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "未选择班级"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	} else {
 		classID, _ = strconv.Atoi(cid)
@@ -306,27 +307,27 @@ func TeacherBatchAdd(c *gin.Context) {
 	// 处理文件上传
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请先上传文件"})
+		consts.RespondWithError(c, -6, "参数异常，先上传文件file")
 		return
 	}
 
 	// 验证文件扩展名
 	if err := utils.ValidateFileExtension(file); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常，文件格式")
 		return
 	}
 
 	// 保存文件到服务器本地
 	dst := filepath.Join("uploads", file.Filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件保存失败"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	// 解析文件内容并处理导入逻辑
 	n, err := services.NewTeacherService(db).ProcessTeacherFile(dst, uint(schoolID), uint(classID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 

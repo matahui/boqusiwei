@@ -30,7 +30,7 @@ func ResourceList(c *gin.Context) {
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -40,7 +40,7 @@ func ResourceList(c *gin.Context) {
 	if pageSizeStr != "" {
 		pz, err := strconv.Atoi(pageSizeStr)
 		if err != nil || pz < 1 {
-			consts.RespondWithError(c, -2, "参数异常")
+			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
 
@@ -55,7 +55,7 @@ func ResourceList(c *gin.Context) {
 
 	st, err := services.NewResourceService(db).List(offset, limit, lv1, lv2, name)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -75,12 +75,12 @@ func ResourceDelete(c *gin.Context)  {
 	)
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if req.ID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数异常,id不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -91,7 +91,7 @@ func ResourceDelete(c *gin.Context)  {
 
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -110,27 +110,27 @@ func ResourceBatchAdd(c *gin.Context) {
 	// 处理文件上传
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请先上传文件"})
+		consts.RespondWithError(c, -6, "参数异常,请上传文件file")
 		return
 	}
 
 	// 验证文件扩展名
 	if err := utils.ValidateFileExtension(file); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -6, "参数异常,文件格式")
 		return
 	}
 
 	// 保存文件到服务器本地
 	dst := filepath.Join("uploads", file.Filename)
 	if err := c.SaveUploadedFile(file, dst); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "文件保存失败"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	// 解析文件内容并处理导入逻辑
 	n, err := services.NewResourceService(db).ProcessSourceFile(dst)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -152,7 +152,7 @@ func ResourceCate(c *gin.Context) {
 
 	l1, l2, ageGroup, re, err := services.NewResourceService(db).GetLevel(lv1, lv2, age)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -184,19 +184,19 @@ func MicroHome(c *gin.Context) {
 
 	ln, err := strconv.Atoi(loginNumber)
 	if err != nil  {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "传参异常,学校ID不正确"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	ps, err := services.NewStudentService(db).GetStudentSchedule(int64(ln))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "获取数据成功",
+		"message": "成功",
 		"code" : 0,
 		"data" : ps,
 	})

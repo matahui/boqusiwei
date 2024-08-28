@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"time"
+	"homeschooledu/consts"
 )
 
 
@@ -17,8 +17,8 @@ type Student struct {
 	ClassID     uint      `gorm:"not null" json:"class_id"`
 	SchoolID    uint     `gorm:"not null" json:"school_id"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 type StudentShow struct {
@@ -33,8 +33,8 @@ type StudentShow struct {
 	ClassName   string   `json:"class_name"`
 	SchoolName  string   `json:"school_name"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 type StudentRanking struct {
@@ -150,8 +150,8 @@ type StudentPoint struct {
 	StudentID int64    `gorm:"type:int64;not null;unique" json:"student_id"`
 	Points    int64     `gorm:"not null" json:"points"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
 type StudentPointShow struct {
@@ -189,7 +189,7 @@ type ActivityLog struct {
 	ActivityDate string `gorm:"not null" json:"activity_date"`
 	PointsAward  int    `gorm:"not null" json:"points_award"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
-	CreateTime time.Time `gorm:"autoCreateTime" json:"create_time"`
-	UpdateTime time.Time `gorm:"autoUpdateTime" json:"update_time"`
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 

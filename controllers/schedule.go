@@ -28,21 +28,21 @@ func ScheduleList(c *gin.Context) {
 	if sid != "" {
 		schoolID, _ = strconv.Atoi(sid)
 	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "参数错误:school_id"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 	if cid != "" {
 		classID, _ = strconv.Atoi(cid)
 	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "参数错误:class_id"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
 
 	year, month, err := utils.ParseYearMonth(ym)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误:year_month"})
+		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}
 
@@ -53,7 +53,7 @@ func ScheduleList(c *gin.Context) {
 
 	st, err := services.NewScheduleService(db).List(uint(schoolID), uint(classID), beginOfMonth, endOfMonth)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取数据异常"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -69,13 +69,13 @@ func ScheduleList(c *gin.Context) {
 	//获取资源id
 	re := services.NewResourceService(db).ExtractResourceIDs(st)
 	if len(re) <= 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取资源数据异常"})
+		consts.RespondWithError(c, -6, "暂无数据")
 		return
 	}
 
 	resource, err := services.NewResourceService(db).GetByID(re)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取资源数据异常"})
+		consts.RespondWithError(c, -6, err.Error())
 		return
 	}
 
@@ -165,19 +165,19 @@ func ScheduleAdd(c *gin.Context) {
 
 	 err = c.ShouldBindJSON(&req)
 	 if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		 consts.RespondWithError(c, -6, "参数异常")
+		 return
 	}
 
 	beginTime, err = time.Parse(consts.TimeFormatLayout, req.BeginTime)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "begin_time格式错误，需要2006-01-02 15:04:05"})
+		consts.RespondWithError(c, -6, "begin_time格式错误，需要2006-01-02 15:04:05")
 		return
 	}
 
 	endTime, err = time.Parse(consts.TimeFormatLayout, req.EndTime)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "end_time格式错误，需要2006-01-02 15:04:05"})
+		consts.RespondWithError(c, -6, "end_time格式错误，需要2006-01-02 15:04:05")
 		return
 	}
 
@@ -194,13 +194,13 @@ func ScheduleAdd(c *gin.Context) {
 
 	n, err := services.NewScheduleService(db).BatchAdd(sd)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "更新数据失败"})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	// 返回成功响应
 	c.JSON(http.StatusOK, gin.H{
-		"message": "资源导入成功",
+		"message": "成功",
 		"code" : 0,
 		"data" : n,
 	})

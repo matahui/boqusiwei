@@ -15,7 +15,8 @@ var CodeMsg = map[int]string {
 	-2 : "密码错误",
     -3 : "数据更新异常",
     -4 : "Authorization needed",
-	500: "服务器内部错误",
+    -6 : "参数错误",
+	-20: "服务器内部错误",
 }
 
 var TeacherRole = map[uint]string {

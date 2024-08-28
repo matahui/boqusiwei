@@ -33,21 +33,21 @@ type StudentLoginResponse struct {
 func Login(c *gin.Context) {
 	var req AccountLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		consts.RespondWithError(c, -1, "参数错误")
+		consts.RespondWithError(c, -6, "参数错误")
 		return
 	}
 
 
 	lc, err, code := services.NewAccountService(config.GetDB()).Login(req.Account, req.Password)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部处理异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 	//获取token
 	token, err := services.GenerateToken(req.Account)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部处理异常")
+		consts.RespondWithError(c, -20, "服务器内部错误")
 		return
 	}
 
@@ -73,7 +73,7 @@ func StudentLogin(c *gin.Context) {
 
 	err:= services.NewStudentService(config.GetDB()).Login(req.LoginNumber, req.Password)
 	if err != nil {
-		consts.RespondWithError(c, -2, "内部处理异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -81,7 +81,7 @@ func StudentLogin(c *gin.Context) {
 	ln := strconv.Itoa(int(req.LoginNumber))
 	token, err := services.GenerateToken(ln)
 	if err != nil {
-		consts.RespondWithError(c, -3, "内部处理异常")
+		consts.RespondWithError(c, -20, "服务器内部错误")
 		return
 	}
 

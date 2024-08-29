@@ -23,6 +23,12 @@ type AccountLoginResponse struct {
 	Token string `json:"token"`
 	Type int    `json:"type"`
 	Account string `json:"account"`
+	School School `json:"school"`
+}
+
+type School struct {
+    ID uint `json:"id"`
+    Name string `json:"name"`
 }
 
 type StudentLoginResponse struct {
@@ -51,16 +57,47 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Return the JWT token in the response
-	c.JSON(http.StatusOK, gin.H{
-		"code" : 0,
-		"message": consts.CodeMsg[code],
-		"data" : &AccountLoginResponse{
-			Token:   token,
-			Type:    int(lc.Cate),
-			Account: lc.Account,
-		},
-	})
+	if lc.Cate == consts.AccountCateAdmin {
+		// Return the JWT token in the response
+		c.JSON(http.StatusOK, gin.H{
+			"code" : 0,
+			"message": consts.CodeMsg[code],
+			"data" : &AccountLoginResponse{
+				Token:   token,
+				Type:    int(lc.Cate),
+				Account: lc.Account,
+				School:  School{
+					ID:   0,
+					Name: "播趣教育",
+				},
+			},
+		})
+	} else {
+		s, err := services.NewSchoolService(config.GetDB()).FindByAccount(req.Account)
+		if err != nil {
+			consts.RespondWithError(c, -20, "服务器内部错误")
+			return
+		}
+
+		if s.School != nil && len(s.School) > 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"code" : 0,
+				"message": consts.CodeMsg[code],
+				"data" : &AccountLoginResponse{
+					Token:   token,
+					Type:    int(lc.Cate),
+					Account: lc.Account,
+					School:  School{
+						ID:   s.School[0].ID,
+						Name: s.School[0].Name,
+					},
+				},
+			})
+		} else {
+			consts.RespondWithError(c, -20, "服务器内部错误")
+			return
+		}
+	}
 }
 
 func StudentLogin(c *gin.Context) {

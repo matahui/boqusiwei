@@ -75,55 +75,119 @@ func TeacherList(c *gin.Context) {
 		limit = pageSize
 		sids = make([]uint, 0)
 		result = make([]*models.TeacherShow, 0)
+		total int64
+		pageI int64
 	)
 
-	st, err := services.NewTeacherService(db).List(offset, limit, uint(schoolID), uint(classID), name)
-	if err != nil {
-		consts.RespondWithError(c, -20, err.Error())
-		return
-	}
+	//没有指定class
+	if classID == 0 {
+		st, err := services.NewTeacherService(db).List(offset, limit, uint(schoolID), uint(classID), name)
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
 
-	for _, v := range st.Teacher {
-		sids = append(sids, v.SchoolID)
-	}
+		for _, v := range st.Teacher {
+			sids = append(sids, v.SchoolID)
+		}
 
-	sc, err := services.NewSchoolService(db).FindByID(sids)
-	if err != nil {
-		consts.RespondWithError(c, -20, err.Error())
-		return
-	}
-
-
-	for i := 0; i < len(st.Teacher); i++ {
-		ts := &models.TeacherShow{
-			ID:            st.Teacher[i].ID,
-			CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
-			LoginNumber:   st.Teacher[i].LoginNumber,
-			Password:      st.Teacher[i].Password,
-			TeacherName:   st.Teacher[i].TeacherName,
-			PhoneNumber:   st.Teacher[i].PhoneNumber,
-			SchoolID:      st.Teacher[i].SchoolID,
-			SchoolName:    sc[st.Teacher[i].SchoolID].Name,
-			Role:          st.Teacher[i].Role,
-			RoleName:      consts.TeacherRole[st.Teacher[i].Role],
-			TeachingClass: make([]*models.TeachClass, 0),
-			IsDelete:      st.Teacher[i].IsDelete,
-			CreateTime: st.Teacher[i].CreateTime,
-			UpdateTime: st.Teacher[i].UpdateTime,
+		sc, err := services.NewSchoolService(db).FindByID(sids)
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
 		}
 
 
-		//确定老师教授班级
-		ci, _ := services.NewTeacherService(db).FindClassInfoByT(st.Teacher[i].ID)
-		for _, v := range ci {
-			ts.TeachingClass = append(ts.TeachingClass, &models.TeachClass{
-				ID:   v.ID,
-				Name: v.ClassName,
-			})
+		for i := 0; i < len(st.Teacher); i++ {
+			ts := &models.TeacherShow{
+				ID:            st.Teacher[i].ID,
+				CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
+				LoginNumber:   st.Teacher[i].LoginNumber,
+				Password:      st.Teacher[i].Password,
+				TeacherName:   st.Teacher[i].TeacherName,
+				PhoneNumber:   st.Teacher[i].PhoneNumber,
+				SchoolID:      st.Teacher[i].SchoolID,
+				SchoolName:    sc[st.Teacher[i].SchoolID].Name,
+				Role:          st.Teacher[i].Role,
+				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
+				TeachingClass: make([]*models.TeachClass, 0),
+				IsDelete:      st.Teacher[i].IsDelete,
+				CreateTime: st.Teacher[i].CreateTime,
+				UpdateTime: st.Teacher[i].UpdateTime,
+			}
+
+
+			//确定老师教授班级
+			ci, _ := services.NewTeacherService(db).FindClassInfoByT(st.Teacher[i].ID)
+			for _, v := range ci {
+				ts.TeachingClass = append(ts.TeachingClass, &models.TeachClass{
+					ID:   v.ID,
+					Name: v.ClassName,
+				})
+			}
+
+			result = append(result, ts)
 		}
 
-		result = append(result, ts)
+		total = st.Total
+		pageI = st.Page
+	} else {
+		//指定学校和班级
+		st, err := services.NewTeacherService(db).List(offset, limit, uint(schoolID), uint(classID), name)
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
+
+		for _, v := range st.Teacher {
+			sids = append(sids, v.SchoolID)
+		}
+
+		sc, err := services.NewSchoolService(db).FindByID(sids)
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
+
+
+		for i := 0; i < len(st.Teacher); i++ {
+			ts := &models.TeacherShow{
+				ID:            st.Teacher[i].ID,
+				CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
+				LoginNumber:   st.Teacher[i].LoginNumber,
+				Password:      st.Teacher[i].Password,
+				TeacherName:   st.Teacher[i].TeacherName,
+				PhoneNumber:   st.Teacher[i].PhoneNumber,
+				SchoolID:      st.Teacher[i].SchoolID,
+				SchoolName:    sc[st.Teacher[i].SchoolID].Name,
+				Role:          st.Teacher[i].Role,
+				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
+				TeachingClass: make([]*models.TeachClass, 0),
+				IsDelete:      st.Teacher[i].IsDelete,
+				CreateTime: st.Teacher[i].CreateTime,
+				UpdateTime: st.Teacher[i].UpdateTime,
+			}
+
+
+			//确定老师教授班级
+			ci, _ := services.NewTeacherService(db).FindClassInfoByT(st.Teacher[i].ID)
+			for _, v := range ci {
+					ts.TeachingClass = append(ts.TeachingClass, &models.TeachClass{
+						ID:   v.ID,
+						Name: v.ClassName,
+					})
+
+					if v.ID == uint(classID) {
+						//只有当前班级
+						result = append(result, ts)
+					}
+				}
+			}
+
+		total = st.Total
+		pageI = st.Page
 	}
+
 
 	// Return the JWT token in the response
 	c.JSON(http.StatusOK, gin.H{
@@ -131,8 +195,8 @@ func TeacherList(c *gin.Context) {
 		"code" : 0,
 		"data" : &services.TeacherListRespShow{
 			Teacher: result,
-			Total:   st.Total,
-			Page:    st.Page,
+			Total:   total,
+			Page:    pageI,
 		},
 	})
 }

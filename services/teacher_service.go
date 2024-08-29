@@ -74,7 +74,7 @@ func (s *TeacherService) Add(st *models.Teacher, cids []uint) error  {
 }
 
 //处理excel
-func (s *TeacherService) ProcessTeacherFile(filePath string, schoolID, classID uint) (int, error) {
+func (s *TeacherService) ProcessTeacherFile(filePath string, schoolID uint) (int, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
@@ -113,12 +113,12 @@ func (s *TeacherService) ProcessTeacherFile(filePath string, schoolID, classID u
 
 		teacher := &models.Teacher{
 			LoginNumber: int64(ln),
+			Password:"123456",
 			TeacherName: row[1],
 			SchoolID:    schoolID,
 			Role:        1,
 		}
 
-		// 如果有家长姓名
 		if len(row) > 2 {
 			teacher.PhoneNumber = row[2]
 		}

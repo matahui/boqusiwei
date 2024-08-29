@@ -230,6 +230,7 @@ func TeacherUpdate(c *gin.Context) {
 		PhoneNumber: req.PhoneNumber,
 		SchoolID:    req.SchoolID,
 		Role:        req.Role,
+		Password:    req.Password,
 	}, req.ID)
 
 
@@ -348,7 +349,6 @@ func TeacherBatchAdd(c *gin.Context) {
 	var (
 		db = config.GetDB()
 		schoolID int
-		classID int
 	)
 
 	sid := c.PostForm("school_id")
@@ -359,14 +359,6 @@ func TeacherBatchAdd(c *gin.Context) {
 		schoolID, _ = strconv.Atoi(sid)
 	}
 
-	// 校验是否选择了班级
-	cid := c.PostForm("class_id")
-	if cid == "" {
-		consts.RespondWithError(c, -6, "参数异常")
-		return
-	} else {
-		classID, _ = strconv.Atoi(cid)
-	}
 
 	// 处理文件上传
 	file, err := c.FormFile("file")
@@ -389,7 +381,7 @@ func TeacherBatchAdd(c *gin.Context) {
 	}
 
 	// 解析文件内容并处理导入逻辑
-	n, err := services.NewTeacherService(db).ProcessTeacherFile(dst, uint(schoolID), uint(classID))
+	n, err := services.NewTeacherService(db).ProcessTeacherFile(dst, uint(schoolID))
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

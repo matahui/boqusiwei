@@ -58,7 +58,7 @@ func InitDB() {
 	sl.Log.Info("Database connected successfully.")
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
 
 		for range ticker.C {

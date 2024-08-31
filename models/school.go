@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"homeschooledu/consts"
 )
@@ -81,7 +82,7 @@ func (S *School) Update(db *gorm.DB, id uint, su *School) error {
 func (S *School) Add(db *gorm.DB, su *School) error {
 	result := db.Create(su)
 	if result.Error != nil {
-		return fmt.Errorf("school add error")
+		return result.Error
 	}
 
 	return nil
@@ -133,6 +134,10 @@ func (r *Region) List(db *gorm.DB) ([]*Region, error) {
 func (r *Region) Add(db *gorm.DB, re *Region) error {
 	result := db.Create(re)
 	if result.Error != nil {
+		if mysqlErr, ok := result.Error.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			return fmt.Errorf("校区名称已存在")
+		}
+
 		return result.Error
 	}
 

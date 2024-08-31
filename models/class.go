@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"homeschooledu/consts"
 )
@@ -68,7 +69,7 @@ func (S *Class) List(db *gorm.DB, offset, limit int, schoolID, classID uint, nam
 	}
 
 	if limit > 0 {
-		err := query.Limit(limit).Offset(offset).Find(&st).Error
+		err := query.Order("id desc").Limit(limit).Offset(offset).Find(&st).Error
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -79,7 +80,7 @@ func (S *Class) List(db *gorm.DB, offset, limit int, schoolID, classID uint, nam
 	}
 
 
-	err := query.Find(&st).Error
+	err := query.Order("id desc").Find(&st).Error
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -97,10 +98,21 @@ func (S *Class) Update(db *gorm.DB, id uint, st *Class) error {
 }
 
 func (S *Class) Add(db *gorm.DB, st []*Class) error {
-	result := db.Create(st)
-	if result.Error != nil {
-		return fmt.Errorf("Class add error")
+	error := db.Create(st).Error
+	if error != nil {
+		if mysqlErr, ok := error.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			for _, cla := range st {
+				// 检查单个记录是否已经存在
+				var existingClass Class
+				if db.Where("school_id = ? and class_name = ?", cla.SchoolID, cla.ClassName).First(&existingClass).Error == nil {
+					return fmt.Errorf("班级名称已存在:%s", cla.ClassName)
+				}
+			}
+
+			return error
+		}
 	}
+
 
 	return nil
 }

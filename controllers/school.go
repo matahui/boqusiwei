@@ -212,6 +212,24 @@ func SchoolAdd(c *gin.Context)  {
 		return
 	}
 
+	if req.Name == "" || req.Region == "" {
+		consts.RespondWithError(c, -6, "参数异常")
+		return
+	}
+
+
+	sc, err := services.NewSchoolService(db).FindByName(req.Region, req.Name)
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	if sc != nil && sc.Region == req.Region && req.Name == req.Name {
+		consts.RespondWithError(c, -20, "学校名称已存在")
+		return
+	}
+
+
 	err = services.NewSchoolService(db).Add(&models.School{
 		Name:       req.Name,
 		Region:     req.Region,

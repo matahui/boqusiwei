@@ -119,6 +119,7 @@ func StudentList(c *gin.Context) {
 			ID:          st.Student[i].ID,
 			StudentCode: fmt.Sprintf("%d", st.Student[i].ID),
 			LoginNumber: st.Student[i].LoginNumber,
+			Password:    st.Student[i].Password,
 			StudentName: st.Student[i].StudentName,
 			ParentName:  st.Student[i].ParentName,
 			PhoneNumber: st.Student[i].PhoneNumber,

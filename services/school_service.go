@@ -71,6 +71,15 @@ func (s *SchoolService) FindByAccount(acc string) (*SchoolListResp, error) {
 	}, nil
 }
 
+func (s *SchoolService) FindByName(region, name string) (*models.School, error) {
+	var sc models.School
+	err := s.DB.Model(&models.School{}).Where("region = ? and name = ? and is_delete = 0", region, name).Find(&sc).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &sc, nil
+}
 
 type RegionService struct {
 	DB *gorm.DB

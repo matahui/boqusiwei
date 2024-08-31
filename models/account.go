@@ -11,6 +11,8 @@ type Account struct {
 	Account     string         `gorm:"type:varchar(255);not null;unique" json:"account"`
 	Password    string         `gorm:"type:varchar(255);not null" json:"password"`
 	Cate    int8           `gorm:"type:tinyint;not null" json:"cate"`
+	Nickname string     `gorm:"type:varchar(255);not null" json:"nickname"`
+	Avatar string     `gorm:"type:varchar(255);not null" json:"avatar"`
 	CreateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	UpdateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
 	IsDelete    int            `gorm:"not null;default:0" json:"is_delete"`

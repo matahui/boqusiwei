@@ -141,7 +141,18 @@ func ClassUpdate(c *gin.Context) {
 		}
 	}
 
-	err := services.NewClassService(db).Update(&models.Class{
+	sc, err := services.NewClassService(db).FindByName(req.SchoolID, req.ClassName)
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	if sc != nil && sc.SchoolID == req.SchoolID && sc.ClassName == req.ClassName {
+		consts.RespondWithError(c, -20, "班级名称已存在")
+		return
+	}
+
+	err = services.NewClassService(db).Update(&models.Class{
 		ClassName: req.ClassName,
 		SchoolID:    req.SchoolID,
 	}, req.ID)
@@ -232,7 +243,7 @@ func ClassAdd(c *gin.Context)  {
 
 
 	if err != nil {
-		consts.RespondWithError(c, -3, "内部异常")
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -257,24 +268,25 @@ func ClassDetail(c *gin.Context)  {
 
 	classID, err := strconv.Atoi(cid)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		consts.RespondWithError(c, -2, "参数错误")
 		return
 	}
 
 	teachers, err := services.NewTeacherClassAssignmentService(db).GetClassTeacher(uint(classID))
 	if err != nil {
-
+		consts.RespondWithError(c, -20, err.Error())
+		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
 
 	students, err := services.NewStudentService(db).GetClassStudents(uint(classID))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 
@@ -302,7 +314,7 @@ func ClassBindTeacher(c *gin.Context)  {
 
 	var req BindTeacherReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		consts.RespondWithError(c, -3, "参数异常")
 		return
 	}
 
@@ -317,7 +329,7 @@ func ClassBindTeacher(c *gin.Context)  {
 
 	err := services.NewTeacherClassAssignmentService(db).Create(tc)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": consts.CodeMsg[-3]})
+		consts.RespondWithError(c, -20, err.Error())
 		return
 	}
 

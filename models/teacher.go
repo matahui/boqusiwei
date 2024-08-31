@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"homeschooledu/consts"
 	"time"
@@ -80,7 +81,7 @@ func (S *Teacher) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 	}
 
 	if limit > 0 {
-		err := query.Limit(limit).Offset(offset).Find(&sc).Error
+		err := query.Order("id desc").Limit(limit).Offset(offset).Find(&sc).Error
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -91,7 +92,7 @@ func (S *Teacher) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 	}
 
 
-	err := query.Find(&sc).Error
+	err := query.Order("id desc").Find(&sc).Error
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -111,7 +112,9 @@ func (S *Teacher) Update(db *gorm.DB, id uint, st *Teacher) error {
 func (S *Teacher) Add(db *gorm.DB, st *Teacher) error {
 	result := db.Create(st)
 	if result.Error != nil {
-		return fmt.Errorf("Teacher add error")
+		if result.Error == gorm.ErrDuplicatedKey {
+			return fmt.Errorf("登录账号已存在")
+		}
 	}
 
 	return nil
@@ -120,7 +123,15 @@ func (S *Teacher) Add(db *gorm.DB, st *Teacher) error {
 func (S *Teacher) BatchInsert(db *gorm.DB, sts []*Teacher) (int, error) {
 	result := db.Create(sts)
 	if result.Error != nil {
-		return 0, result.Error
+		if mysqlErr, ok := result.Error.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			for _, teacher := range sts {
+				// 检查单个记录是否已经存在
+				var existingTeacher Teacher
+				if db.Where("login_number = ?", teacher.LoginNumber).First(&existingTeacher).Error == nil {
+					return 0, fmt.Errorf("插入失败，存在重复的 login_number:%d", teacher.LoginNumber)
+				}
+			}
+		}
 	}
 
 	return int(result.RowsAffected), nil

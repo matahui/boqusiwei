@@ -10,8 +10,8 @@ import (
 )
 
 type AccountLoginRequest struct {
-	Account  string `json:"account" binding:"required,alphanum,min=5"`  // 账号，必须是5位以上的字母或数字
-	Password string `json:"password" binding:"required,min=8"`          // 密码，至少8位
+	Account  string `json:"account" binding:"required"`  // 账号，必须是5位以上的字母或数字
+	Password string `json:"password" binding:"required"`          // 密码，至少8位
 }
 
 type StudentLoginRequest struct {
@@ -23,6 +23,7 @@ type AccountLoginResponse struct {
 	Token string `json:"token"`
 	Type int    `json:"type"`
 	Account string `json:"account"`
+	Name string `json:"name"`
 	School School `json:"school"`
 }
 
@@ -66,6 +67,7 @@ func Login(c *gin.Context) {
 				Token:   token,
 				Type:    int(lc.Cate),
 				Account: lc.Account,
+				Name : lc.Nickname,
 				School:  School{
 					ID:   0,
 					Name: "播趣教育",
@@ -87,6 +89,7 @@ func Login(c *gin.Context) {
 					Token:   token,
 					Type:    int(lc.Cate),
 					Account: lc.Account,
+					Name: lc.Nickname,
 					School:  School{
 						ID:   s.School[0].ID,
 						Name: s.School[0].Name,

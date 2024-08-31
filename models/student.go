@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"homeschooledu/consts"
 )
@@ -25,6 +26,7 @@ type StudentShow struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	StudentCode string    `gorm:"type:varchar(20);not null;unique" json:"student_code"`
 	LoginNumber int64    `gorm:"type:int64;not null;unique" json:"login_number"`
+	Password    string   `gorm:"type:varchar(255);not null" json:"password"`
 	StudentName string    `gorm:"type:varchar(255);not null" json:"student_name"`
 	ParentName  string    `gorm:"type:varchar(255)" json:"parent_name"`
 	PhoneNumber string    `gorm:"type:varchar(20)" json:"phone_number"`
@@ -97,7 +99,7 @@ func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 	}
 
 	if limit > 0 {
-		err := query.Limit(limit).Offset(offset).Find(&sc).Error
+		err := query.Order("id desc").Limit(limit).Offset(offset).Find(&sc).Error
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -108,7 +110,7 @@ func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 	}
 
 
-	err := query.Find(&sc).Error
+	err := query.Order("id desc").Find(&sc).Error
 	if err != nil {
 		return nil, 0, 0, err
 	}
@@ -128,6 +130,9 @@ func (S *Student) Update(db *gorm.DB, id uint, st *Student) error {
 func (S *Student) Add(db *gorm.DB, st *Student) error {
 	result := db.Create(st)
 	if result.Error != nil {
+		if result.Error == gorm.ErrDuplicatedKey {
+			return fmt.Errorf("登录账号已存在login_number:%d", st.LoginNumber)
+		}
 		return fmt.Errorf("student add error")
 	}
 
@@ -137,6 +142,16 @@ func (S *Student) Add(db *gorm.DB, st *Student) error {
 func (S *Student) BatchInsert(db *gorm.DB, sts []*Student) (int, error) {
 	result := db.Create(sts)
 	if result.Error != nil {
+		if mysqlErr, ok := result.Error.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			for _, student := range sts {
+				// 检查单个记录是否已经存在
+				var existingStudent Student
+				if db.Where("login_number = ?", student.LoginNumber).First(&existingStudent).Error == nil {
+					return 0, fmt.Errorf("插入失败，存在重复的 login_number:%d", student.LoginNumber)
+				}
+			}
+		}
+
 		return 0, result.Error
 	}
 

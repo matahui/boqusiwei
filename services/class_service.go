@@ -64,3 +64,13 @@ func (s *ClassService) FindByID(ids []uint) (map[uint]*models.Class, error)  {
 
 	return r, nil
 }
+
+func (s *ClassService) FindByName(sid uint, name string) (*models.Class, error) {
+	var cl models.Class
+	err := s.DB.Model(&models.Class{}).Where("school_id = ? and class_name = ? and is_delete = 0", sid, name).Find(&cl).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &cl, nil
+}

@@ -59,7 +59,8 @@ CREATE TABLE `classes` (
      `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
      `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
      `is_delete` INT NOT NULL DEFAULT 0,
-     PRIMARY KEY (`id`)
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `u_school_class` (`school_id`, `class_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

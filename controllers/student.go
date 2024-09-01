@@ -174,6 +174,7 @@ func StudentUpdate(c *gin.Context) {
 		PhoneNumber: req.PhoneNumber,
 		ClassID:     req.ClassID,
 		SchoolID:    req.SchoolID,
+		Password:    req.Password,
 	}, req.ID)
 
 

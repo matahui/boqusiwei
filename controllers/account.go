@@ -70,7 +70,7 @@ func Login(c *gin.Context) {
 				Name : lc.Nickname,
 				School:  School{
 					ID:   0,
-					Name: "播趣教育",
+					Name: "北京小龙人教育集团",
 				},
 			},
 		})

@@ -212,7 +212,7 @@ func SchoolAdd(c *gin.Context)  {
 		return
 	}
 
-	if req.Name == "" || req.Region == "" {
+	if req.Name == "" {
 		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}

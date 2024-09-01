@@ -224,7 +224,7 @@ func SchoolAdd(c *gin.Context)  {
 		return
 	}
 
-	if sc != nil && sc.Region == req.Region && req.Name == req.Name {
+	if sc != nil && sc.Region == req.Region && req.Name == sc.Name {
 		consts.RespondWithError(c, -20, "学校名称已存在")
 		return
 	}

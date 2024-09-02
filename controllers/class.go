@@ -95,7 +95,7 @@ func ClassList(c *gin.Context) {
 
 
 	for i := 0; i < len(st.Class); i++ {
-		result = append(result, &models.ClassShow{
+		cs := &models.ClassShow{
 			ID:         st.Class[i].ID,
 			CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),
 			ClassName:  st.Class[i].ClassName,
@@ -104,7 +104,15 @@ func ClassList(c *gin.Context) {
 			CreateTime: st.Class[i].CreateTime,
 			UpdateTime: st.Class[i].UpdateTime,
 			IsDelete:   st.Class[i].IsDelete,
-		})
+		}
+
+		//判断某个班级
+		if services.NewClassService(db).CanDel(cs.ID) {
+			cs.IsDelete = 1
+		}
+
+		result = append(result, cs)
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{

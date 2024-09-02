@@ -127,6 +127,18 @@ func SchoolUpdate(c *gin.Context) {
 		return
 	}
 
+	sc, err := services.NewSchoolService(db).FindByName(req.Region, req.Name)
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	if sc != nil && sc.Region == req.Region && req.Name == sc.Name {
+		consts.RespondWithError(c, -20, "学校名称已存在")
+		return
+	}
+
+
 	err = services.NewSchoolService(db).Update(&models.School{
 		Name:       req.Name,
 		Region:     req.Region,
@@ -167,10 +179,7 @@ func SchoolDelete(c *gin.Context)  {
 		return
 	}
 
-	err = services.NewSchoolService(db).Update(&models.School{
-		IsDelete:1,
-	}, req.ID)
-
+	err = services.NewSchoolService(db).Delete(req.ID)
 
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
@@ -305,6 +314,11 @@ func RegionAdd(c *gin.Context)  {
 
 	var req AddRegionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		consts.RespondWithError(c, -6, "参数异常")
+		return
+	}
+
+	if req.Name == "" {
 		consts.RespondWithError(c, -6, "参数异常")
 		return
 	}

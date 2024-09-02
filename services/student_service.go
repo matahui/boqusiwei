@@ -3,10 +3,12 @@ package services
 import (
 	"errors"
 	"fmt"
+	"github.com/extrame/xls"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"homeschooledu/models"
+	"homeschooledu/utils"
 	"os"
 	"strconv"
 )
@@ -20,6 +22,16 @@ func NewStudentService(db *gorm.DB) *StudentService{
 }
 func (s *StudentService) Info(id uint) (*models.Student, error) {
 	return models.NewStudent().Info(s.DB, id)
+}
+
+func (s *StudentService) InfoByLN(ln int64) (*models.Student, error) {
+	var su models.Student
+	err := s.DB.Model(&models.Student{}).Where("login_number = ?", ln).Find(&su).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &su, nil
 }
 
 func (s *StudentService) InfoByLogin(ln uint) (*models.Student, error) {
@@ -67,64 +79,134 @@ func (s *StudentService) Add(st *models.Student) error  {
 }
 
 //处理excel
-func (s *StudentService) ProcessStudentFile(filePath string, schoolID, classID uint) (int, error) {
-	f, err := excelize.OpenFile(filePath)
-	if err != nil {
-		return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-		os.Remove(filePath)  // 处理完后删除文件
-	}()
-
-
-	// 获取第一个工作表
-	sheetName := f.GetSheetName(0)
-	rows, err := f.GetRows(sheetName)
-	if err != nil {
-		return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
-	}
-
-	sts := make([]*models.Student, 0)
-	// 遍历行数据，跳过标题行
-	for i, row := range rows {
-		if i == 0 {
-			continue // 跳过标题行
-		}
-
-		if len(row) < 2 {
-			continue // 跳过无效行
-		}
-
-		ln, err := strconv.Atoi(row[0])
+func (s *StudentService) ProcessStudentFile(filePath, ext string, schoolID, classID uint) (int, error) {
+	switch ext {
+	case utils.ExtFileXLSX:
+		f, err := excelize.OpenFile(filePath)
 		if err != nil {
-			continue
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
 		}
 
-		student := &models.Student{
-			LoginNumber: int64(ln),
-			StudentName: row[1],
-			SchoolID: schoolID,
-			ClassID: classID,
+		defer func() {
+			if err := f.Close(); err != nil {
+				fmt.Println(err)
+			}
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+
+		// 获取第一个工作表
+		sheetName := f.GetSheetName(0)
+		rows, err := f.GetRows(sheetName)
+		if err != nil {
+			return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
 		}
 
-		// 如果有家长姓名
-		if len(row) > 2 {
-			student.ParentName = row[2]
+		sts := make([]*models.Student, 0)
+		// 遍历行数据，跳过标题行
+		for i, row := range rows {
+			if i == 0 {
+				continue // 跳过标题行
+			}
+
+			if len(row) < 2 {
+				continue // 跳过无效行
+			}
+
+			ln, err := strconv.Atoi(row[0])
+			if err != nil {
+				continue
+			}
+
+			student := &models.Student{
+				LoginNumber: int64(ln),
+				StudentName: row[1],
+				SchoolID: schoolID,
+				ClassID: classID,
+			}
+
+			// 如果有家长姓名
+			if len(row) > 2 {
+				student.ParentName = row[2]
+			}
+
+			// 如果有电话号码
+			if len(row) > 3 {
+				student.PhoneNumber = row[3]
+			}
+
+			sts = append(sts, student)
 		}
 
-		// 如果有电话号码
-		if len(row) > 3 {
-			student.PhoneNumber = row[3]
+		if len(sts) <= 0 {
+			return -2, fmt.Errorf("请在表格中输入正确的信息")
 		}
 
-		sts = append(sts, student)
+		return models.NewStudent().BatchInsert(s.DB, sts)
+
+	case utils.ExtFileXLS:
+		xlFile, err := xls.Open(filePath, "utf-8")
+		if err != nil {
+			os.Remove(filePath)  // 处理完后删除文件
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
+		}
+
+		defer func() {
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+		sheet := xlFile.GetSheet(0)
+		sts := make([]*models.Student, 0)
+
+		if sheet.MaxRow != 0 {
+			for i := 0; i < int(sheet.MaxRow); i++ {
+				if i == 0 {
+					continue
+				}
+
+				row := sheet.Row(i)
+				if row.LastCol() < 2 {
+					continue // 跳过无效行
+				}
+
+
+				ln, err := strconv.Atoi(row.Col(0))
+				if err != nil {
+					continue
+				}
+
+				student := &models.Student{
+					LoginNumber: int64(ln),
+					StudentName: row.Col(1),
+					SchoolID: schoolID,
+					ClassID: classID,
+				}
+
+				// 如果有家长姓名
+				if row.LastCol() > 2 {
+					student.ParentName = row.Col(2)
+				}
+
+				// 如果有电话号码
+				if row.LastCol() > 3 {
+					student.PhoneNumber = row.Col(3)
+				}
+
+				sts = append(sts, student)
+			}
+
+			if len(sts) <= 0 {
+				return -2, fmt.Errorf("请在表格中输入正确的信息")
+			}
+
+			return models.NewStudent().BatchInsert(s.DB, sts)
+		}
+
+	default:
+		return -2, fmt.Errorf("暂时不支持其他格式")
 	}
 
-	return models.NewStudent().BatchInsert(s.DB, sts)
+	return -2, fmt.Errorf("暂时不支持其他格式")
 }
 
 func (s *StudentService) GetClassStudents(classID uint) ([]*models.Student, error) {

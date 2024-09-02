@@ -15,11 +15,15 @@ var allowedExtensions = map[string]bool{
 }
 
 // 验证文件扩展名
-func ValidateFileExtension(file *multipart.FileHeader) error {
+func ValidateFileExtension(file *multipart.FileHeader) (string, error) {
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	if !allowedExtensions[ext] {
-		return errors.New("文件格式不支持，只允许 .xlsx 或 .xls")
+		return "", errors.New("文件格式不支持，只允许 .xlsx 或 .xls")
 	}
-	return nil
+	return ext, nil
 }
 
+const (
+	ExtFileXLSX = ".xlsx"
+	ExtFileXLS = ".xls"
+)

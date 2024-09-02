@@ -74,3 +74,29 @@ func (s *ClassService) FindByName(sid uint, name string) (*models.Class, error) 
 
 	return &cl, nil
 }
+
+func (s *ClassService) CanDel(cid uint) bool {
+	//班级能否被删除
+	var sn int64
+	err := s.DB.Model(&models.Student{}).Where("class_id = ? and is_delete = 0", cid).Count(&sn).Error
+	if err != nil {
+		return false
+	}
+
+	if sn > 0 {
+		//有学生还在，不能删除
+		return false
+	}
+
+	//有授课
+	err = s.DB.Model(&models.TeacherClassAssignment{}).Where("class_id = ? and is_delete = 0", cid).Count(&sn).Error
+	if err != nil {
+		return false
+	}
+
+	if sn > 0 {
+		return false
+	}
+
+	return true
+}

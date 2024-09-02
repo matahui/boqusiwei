@@ -167,7 +167,18 @@ func StudentUpdate(c *gin.Context) {
 		}
 	}
 
-	err := services.NewStudentService(db).Update(&models.Student{
+	su, err := services.NewStudentService(db).InfoByLN(req.LoginNumber)
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	if su != nil && su.LoginNumber == req.LoginNumber {
+		consts.RespondWithError(c, -20, "登录账号已存在")
+		return
+	}
+
+	err = services.NewStudentService(db).Update(&models.Student{
 		LoginNumber: req.LoginNumber,
 		StudentName: req.StudentName,
 		ParentName:  req.ParentName,
@@ -285,7 +296,8 @@ func StudentBatchAdd(c *gin.Context) {
 	}
 
 	// 验证文件扩展名
-	if err := utils.ValidateFileExtension(file); err != nil {
+	ext, err := utils.ValidateFileExtension(file)
+	if err != nil {
 		consts.RespondWithError(c, -6, "文件格式不正确")
 		return
 	}
@@ -298,7 +310,7 @@ func StudentBatchAdd(c *gin.Context) {
 	}
 
 	// 解析文件内容并处理导入逻辑（假设已经实现）
-	n, err := services.NewStudentService(db).ProcessStudentFile(dst, uint(schoolID), uint(classID))
+	n, err := services.NewStudentService(db).ProcessStudentFile(dst, ext, uint(schoolID), uint(classID))
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

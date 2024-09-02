@@ -44,6 +44,10 @@ func (s *SchoolService) Add(su *models.School) error  {
 	return models.NewSchool().Add(s.DB, su)
 }
 
+func (s *SchoolService) Delete(id uint) error {
+	return models.NewSchool().Del(s.DB, id)
+}
+
 func (s *SchoolService) FindByID(ids []uint) (map[uint]*models.School, error)  {
 	sc, err := models.NewSchool().FindByID(s.DB, ids)
 	if err != nil {

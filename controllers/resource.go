@@ -115,7 +115,8 @@ func ResourceBatchAdd(c *gin.Context) {
 	}
 
 	// 验证文件扩展名
-	if err := utils.ValidateFileExtension(file); err != nil {
+	ext, err := utils.ValidateFileExtension(file)
+	if err != nil {
 		consts.RespondWithError(c, -6, "参数异常,文件格式")
 		return
 	}
@@ -128,7 +129,7 @@ func ResourceBatchAdd(c *gin.Context) {
 	}
 
 	// 解析文件内容并处理导入逻辑
-	n, err := services.NewResourceService(db).ProcessSourceFile(dst)
+	n, err := services.NewResourceService(db).ProcessSourceFile(dst, ext)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

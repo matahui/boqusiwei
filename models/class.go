@@ -25,7 +25,7 @@ type ClassShow struct {
 	SchoolName string `json:"school_name"`
 	CreateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	UpdateTime  consts.CustomTime      `gorm:"not null;default:CURRENT_TIMESTAMP;autoUpdateTime" json:"update_time"`
-	IsDelete    int            `gorm:"not null;default:0" json:"is_delete"`
+	IsDelete    int            `gorm:"not null;default:0" json:"is_delete"` // 0:不可删除 1:可删除
 }
 
 

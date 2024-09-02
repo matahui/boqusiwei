@@ -88,6 +88,10 @@ func (S *School) Add(db *gorm.DB, su *School) error {
 	return nil
 }
 
+func (S *School) Del(db *gorm.DB, id uint) error {
+	return db.Unscoped().Where("id = ?", id).Delete(&School{}).Error
+}
+
 func (S *School) FindByID(db *gorm.DB, ids []uint) ([]*School, error) {
 	var sc []*School
 	result := db.Where("id in ?", ids).Find(&sc)

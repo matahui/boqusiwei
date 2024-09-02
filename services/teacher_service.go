@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/extrame/xls"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 	"homeschooledu/models"
@@ -74,60 +75,123 @@ func (s *TeacherService) Add(st *models.Teacher, cids []uint) error  {
 }
 
 //处理excel
-func (s *TeacherService) ProcessTeacherFile(filePath string, schoolID uint) (int, error) {
-	f, err := excelize.OpenFile(filePath)
-	if err != nil {
-		return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
-	}
-
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-		os.Remove(filePath)  // 处理完后删除文件
-	}()
-
-
-	// 获取第一个工作表
-	sheetName := f.GetSheetName(0)
-	rows, err := f.GetRows(sheetName)
-	if err != nil {
-		return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
-	}
-
-	sts := make([]*models.Teacher, 0)
-	// 遍历行数据，跳过标题行
-	for i, row := range rows {
-		if i == 0 {
-			continue // 跳过标题行
-		}
-
-		if len(row) < 2 {
-			continue // 跳过无效行
-		}
-
-		ln, err := strconv.Atoi(row[0])
+func (s *TeacherService) ProcessTeacherFile(filePath, ext string, schoolID uint) (int, error) {
+	switch ext {
+	case utils.ExtFileXLSX:
+		f, err := excelize.OpenFile(filePath)
 		if err != nil {
-			continue
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
 		}
 
-		teacher := &models.Teacher{
-			LoginNumber: int64(ln),
-			Password:"123456",
-			TeacherName: row[1],
-			SchoolID:    schoolID,
-			Role:        1,
+		defer func() {
+			if err := f.Close(); err != nil {
+				fmt.Println(err)
+			}
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+
+		// 获取第一个工作表
+		sheetName := f.GetSheetName(0)
+		rows, err := f.GetRows(sheetName)
+		if err != nil {
+			return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
 		}
 
-		if len(row) > 2 {
-			teacher.PhoneNumber = row[2]
+		sts := make([]*models.Teacher, 0)
+		// 遍历行数据，跳过标题行
+		for i, row := range rows {
+			if i == 0 {
+				continue // 跳过标题行
+			}
+
+			if len(row) < 2 {
+				continue // 跳过无效行
+			}
+
+			ln, err := strconv.Atoi(row[0])
+			if err != nil {
+				continue
+			}
+
+			teacher := &models.Teacher{
+				LoginNumber: int64(ln),
+				Password:"123456",
+				TeacherName: row[1],
+				SchoolID:    schoolID,
+				Role:        2,
+			}
+
+			if len(row) > 2 {
+				teacher.PhoneNumber = row[2]
+			}
+
+
+			sts = append(sts, teacher)
 		}
 
+		if len(sts) <= 0 {
+			return -2, fmt.Errorf("请在表格中输入正确的信息")
+		}
 
-		sts = append(sts, teacher)
+		return models.NewTeacher().BatchInsert(s.DB, sts)
+
+	case utils.ExtFileXLS:
+		xlFile, err := xls.Open(filePath, "utf-8")
+		if err != nil {
+			os.Remove(filePath)  // 处理完后删除文件
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
+		}
+
+		defer func() {
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+		sheet := xlFile.GetSheet(0)
+		sts := make([]*models.Teacher, 0)
+		if sheet.MaxRow != 0 {
+			for i := 0; i < int(sheet.MaxRow); i++ {
+				if i == 0 {
+					continue
+				}
+
+				row := sheet.Row(i)
+				if row.LastCol() < 2 {
+					continue // 跳过无效行
+				}
+
+
+				ln, err := strconv.Atoi(row.Col(0))
+				if err != nil {
+					continue
+				}
+
+				teacher := &models.Teacher{
+					LoginNumber: int64(ln),
+					Password:"123456",
+					TeacherName: row.Col(1),
+					SchoolID:    schoolID,
+					Role:        2,
+				}
+
+				if row.LastCol() > 2 {
+					teacher.PhoneNumber = row.Col(2)
+				}
+
+				sts = append(sts, teacher)
+			}
+
+			if len(sts) <= 0 {
+				return -2, fmt.Errorf("请在表格中输入正确的信息")
+			}
+
+			return models.NewTeacher().BatchInsert(s.DB, sts)
+		}
+	default:
+		return -2, fmt.Errorf("暂时不支持其他格式")
 	}
 
-	return models.NewTeacher().BatchInsert(s.DB, sts)
+	return -2, fmt.Errorf("暂时不支持其他格式")
 }
 
 func (s *TeacherService) FindClassInfoByT(tid uint) ([]*models.Class, error) {

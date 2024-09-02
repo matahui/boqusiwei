@@ -2,9 +2,11 @@ package services
 
 import (
 	"fmt"
+	"github.com/extrame/xls"
 	"github.com/xuri/excelize/v2"
 	"gorm.io/gorm"
 	"homeschooledu/models"
+	"homeschooledu/utils"
 	"os"
 )
 
@@ -48,52 +50,103 @@ func (s *ResourceService) Add(st *models.Resource) error  {
 }
 
 //处理excel
-func (s *ResourceService) ProcessSourceFile(filePath string) (int, error) {
-	f, err := excelize.OpenFile(filePath)
-	if err != nil {
-		return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
+func (s *ResourceService) ProcessSourceFile(filePath, ext string) (int, error) {
+	switch ext {
+	case utils.ExtFileXLSX:
+		f, err := excelize.OpenFile(filePath)
+		if err != nil {
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
+		}
+
+		defer func() {
+			if err := f.Close(); err != nil {
+				fmt.Println(err)
+			}
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+
+		// 获取第一个工作表
+		sheetName := f.GetSheetName(0)
+		rows, err := f.GetRows(sheetName)
+		if err != nil {
+			return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
+		}
+
+		sts := make([]*models.Resource, 0)
+		// 遍历行数据，跳过标题行
+		for i, row := range rows {
+			if i == 0 {
+				continue // 跳过标题行
+			}
+
+			if len(row) < 6 {
+				err = fmt.Errorf("文件格式有误")
+				return 0, err
+			}
+
+
+			so := &models.Resource{
+				ResourceName: row[1],
+				AgeGroup:     row[2],
+				Course:       row[3],
+				Level1:       row[4],
+				Level2:       row[5],
+			}
+
+			sts = append(sts, so)
+		}
+
+		if len(sts) <= 0 {
+			return -2, fmt.Errorf("请在表格中输入正确的信息")
+		}
+
+		return models.NewResource().BatchInsert(s.DB, sts)
+
+	case utils.ExtFileXLS:
+		xlFile, err := xls.Open(filePath, "utf-8")
+		if err != nil {
+			os.Remove(filePath)  // 处理完后删除文件
+			return -1, fmt.Errorf("无法打开文件%s 错误提示%v", filePath, err)
+		}
+
+		defer func() {
+			os.Remove(filePath)  // 处理完后删除文件
+		}()
+
+		sheet := xlFile.GetSheet(0)
+		sts := make([]*models.Resource, 0)
+		if sheet.MaxRow != 0 {
+			for i := 0; i < int(sheet.MaxRow); i++ {
+				if i == 0 {
+					continue
+				}
+
+				row := sheet.Row(i)
+				if row.LastCol() < 6 {
+					err = fmt.Errorf("文件格式有误")
+					return 0, err
+				}
+
+
+				so := &models.Resource{
+					ResourceName: row.Col(1),
+					AgeGroup:     row.Col(2),
+					Course:       row.Col(3),
+					Level1:       row.Col(4),
+					Level2:       row.Col(5),
+				}
+
+				sts = append(sts, so)
+			}
+
+			return models.NewResource().BatchInsert(s.DB, sts)
+		}
+	default:
+		return -2, fmt.Errorf("暂时不支持其他格式")
 	}
 
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-		os.Remove(filePath)  // 处理完后删除文件
-	}()
-
-
-	// 获取第一个工作表
-	sheetName := f.GetSheetName(0)
-	rows, err := f.GetRows(sheetName)
-	if err != nil {
-		return -1, fmt.Errorf("无法读取文件工作表%s 错误提示%v", sheetName, err)
-	}
-
-	sts := make([]*models.Resource, 0)
-	// 遍历行数据，跳过标题行
-	for i, row := range rows {
-		if i == 0 {
-			continue // 跳过标题行
-		}
-
-		if len(row) < 6 {
-			err = fmt.Errorf("文件格式有误")
-			return 0, err
-		}
-
-
-		so := &models.Resource{
-			ResourceName: row[1],
-			AgeGroup:     row[2],
-			Course:       row[3],
-			Level1:       row[4],
-			Level2:       row[5],
-		}
-
-		sts = append(sts, so)
-	}
-
-	return models.NewResource().BatchInsert(s.DB, sts)
+	return -2, fmt.Errorf("暂时不支持其他格式")
 }
 
 //获取分类

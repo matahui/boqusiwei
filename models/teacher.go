@@ -128,7 +128,7 @@ func (S *Teacher) BatchInsert(db *gorm.DB, sts []*Teacher) (int, error) {
 				// 检查单个记录是否已经存在
 				var existingTeacher Teacher
 				if db.Where("login_number = ?", teacher.LoginNumber).First(&existingTeacher).Error == nil {
-					return 0, fmt.Errorf("插入失败，存在重复的 login_number:%d", teacher.LoginNumber)
+					return 0, fmt.Errorf("导入失败，账号%d已存在", teacher.LoginNumber)
 				}
 			}
 		}

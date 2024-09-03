@@ -93,25 +93,38 @@ func ClassList(c *gin.Context) {
 		return
 	}
 
+	if sc == nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+
 
 	for i := 0; i < len(st.Class); i++ {
-		cs := &models.ClassShow{
-			ID:         st.Class[i].ID,
-			CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),
-			ClassName:  st.Class[i].ClassName,
-			SchoolID:   st.Class[i].SchoolID,
-			SchoolName: sc[st.Class[i].SchoolID].Name,
-			CreateTime: st.Class[i].CreateTime,
-			UpdateTime: st.Class[i].UpdateTime,
-			IsDelete:   st.Class[i].IsDelete,
-		}
+		if st != nil && st.Class[i] != nil {
+			sn, ok := sc[st.Class[i].SchoolID]
+			if !ok || sn == nil 
+				continue
+			}
 
-		//判断某个班级
-		if services.NewClassService(db).CanDel(cs.ID) {
-			cs.IsDelete = 1
-		}
+			cs := &models.ClassShow{
+				ID:         st.Class[i].ID,
+				CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),
+				ClassName:  st.Class[i].ClassName,
+				SchoolID:   st.Class[i].SchoolID,
+				SchoolName: sc[st.Class[i].SchoolID].Name,
+				CreateTime: st.Class[i].CreateTime,
+				UpdateTime: st.Class[i].UpdateTime,
+				IsDelete:   st.Class[i].IsDelete,
+			}
 
-		result = append(result, cs)
+			//判断某个班级
+			if services.NewClassService(db).CanDel(cs.ID) {
+				cs.IsDelete = 1
+			}
+
+			result = append(result, cs)
+		}
 
 	}
 

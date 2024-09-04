@@ -103,7 +103,7 @@ func ClassList(c *gin.Context) {
 	for i := 0; i < len(st.Class); i++ {
 		if st != nil && st.Class[i] != nil {
 			sn, ok := sc[st.Class[i].SchoolID]
-			if !ok || sn == nil 
+			if !ok || sn == nil {
 				continue
 			}
 

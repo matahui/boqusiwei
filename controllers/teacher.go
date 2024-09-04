@@ -98,7 +98,18 @@ func TeacherList(c *gin.Context) {
 		}
 
 
+		if sc == nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
+
+
 		for i := 0; i < len(st.Teacher); i++ {
+			sn, ok := sc[st.Teacher[i].SchoolID]
+			if !ok || sn == nil {
+				continue
+			}
+
 			ts := &models.TeacherShow{
 				ID:            st.Teacher[i].ID,
 				CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
@@ -107,7 +118,7 @@ func TeacherList(c *gin.Context) {
 				TeacherName:   st.Teacher[i].TeacherName,
 				PhoneNumber:   st.Teacher[i].PhoneNumber,
 				SchoolID:      st.Teacher[i].SchoolID,
-				SchoolName:    sc[st.Teacher[i].SchoolID].Name,
+				SchoolName:    sn.Name,
 				Role:          st.Teacher[i].Role,
 				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 				TeachingClass: make([]*models.TeachClass, 0),
@@ -150,7 +161,17 @@ func TeacherList(c *gin.Context) {
 		}
 
 
+		if sc == nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
+
 		for i := 0; i < len(st.Teacher); i++ {
+			sn, ok := sc[st.Teacher[i].SchoolID]
+			if !ok || sn == nil {
+				continue
+			}
+
 			ts := &models.TeacherShow{
 				ID:            st.Teacher[i].ID,
 				CustomID:      fmt.Sprintf("L%07d", st.Teacher[i].ID),
@@ -159,7 +180,7 @@ func TeacherList(c *gin.Context) {
 				TeacherName:   st.Teacher[i].TeacherName,
 				PhoneNumber:   st.Teacher[i].PhoneNumber,
 				SchoolID:      st.Teacher[i].SchoolID,
-				SchoolName:    sc[st.Teacher[i].SchoolID].Name,
+				SchoolName:    sn.Name,
 				Role:          st.Teacher[i].Role,
 				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 				TeachingClass: make([]*models.TeachClass, 0),

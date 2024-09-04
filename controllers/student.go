@@ -104,6 +104,10 @@ func StudentList(c *gin.Context) {
 	}
 
 
+	if sc == nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
 
 	for i := 0; i < len(st.Student); i++ {
 		var (
@@ -114,6 +118,11 @@ func StudentList(c *gin.Context) {
 			className = cn.ClassName
 		}
 
+
+		sn, ok := sc[st.Student[i].SchoolID]
+		if !ok || sn == nil {
+			continue
+		}
 
 		result = append(result, &models.StudentShow{
 			ID:          st.Student[i].ID,
@@ -126,7 +135,7 @@ func StudentList(c *gin.Context) {
 			ClassID:     st.Student[i].ClassID,
 			SchoolID:    st.Student[i].SchoolID,
 			ClassName:   className,
-			SchoolName:  sc[st.Student[i].SchoolID].Name,
+			SchoolName:  sn.Name,
 			IsDelete:    st.Student[i].IsDelete,
 			CreateTime: st.Student[i].CreateTime,
 			UpdateTime: st.Student[i].UpdateTime,

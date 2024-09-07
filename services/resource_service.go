@@ -93,6 +93,7 @@ func (s *ResourceService) ProcessSourceFile(filePath, ext string) (int, error) {
 
 			np := utils.ConvertWindowsPathToURL(wp)
 
+
 			so := &models.Resource{
 				ResourceName: row[1],
 				AgeGroup:     row[2],

@@ -22,7 +22,7 @@ func ConvertWindowsPathToURL(windowsPath string) string {
 }
 
 func TestConvert(t *testing.T) {
-	wp := "D:\\幼儿园资源\\小龙人\\学科\\大班\\a.mp3"
+	wp := "D:\\幼儿园资源\\小龙人\\阅读\\聆听\\小班\\9月\\1-30号\\小龙人-阅读-聆听-小班-9月.mp3"
 	np := ConvertWindowsPathToURL(wp)
 	t.Logf("np:%s\n", np)
 }

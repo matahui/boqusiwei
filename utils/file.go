@@ -38,8 +38,9 @@ func ConvertWindowsPathToURL(windowsPath string) string {
 		windowsPath = windowsPath[len(prefix):]
 	}
 
+	newPath := windowsPath[len(prefix)+1:]
 	// 将反斜杠替换为正斜杠
-	urlPath := strings.ReplaceAll(windowsPath, "\\", "/")
+	urlPath := strings.ReplaceAll(newPath, `\\`, "/")
 
 	// 拼接完整的 URL
 	return baseURL + urlPath

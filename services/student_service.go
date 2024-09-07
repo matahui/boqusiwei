@@ -283,7 +283,7 @@ func (s *StudentService) GetStudentSchedule(ln int64) ([]*models.ResourceStudent
 	var st []*models.ResourceStudentShow
 
 	err := s.DB.Table("schedules").
-		Select("schedules.id AS schedule_id, resources.resource_name, resources.course, resources.age_group, resources.level_1, resources.level_2").
+		Select("schedules.id AS schedule_id, resources.resource_name, resources.course, resources.age_group, resources.level_1, resources.level_2, resources.path").
 		Joins("JOIN resources ON schedules.resource_id = resources.id").
 		Joins("JOIN students ON schedules.class_id = students.class_id").
 		Where("students.login_number = ? AND CURDATE() BETWEEN DATE(schedules.begin_time) AND DATE(schedules.end_time)", ln).

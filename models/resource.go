@@ -13,6 +13,7 @@ type Resource struct {
 	Course    string    `gorm:"type:varchar(255)" json:"course"`
 	Level1    string    `gorm:"column:level_1;type:varchar(255)" json:"level_1"`
 	Level2    string    `gorm:"column:level_2;type:varchar(255)" json:"level_2"`
+	Path      string    `gorm:"column:path;type:varchar(255)" json:"path"`
 	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
 	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
 	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`

@@ -85,6 +85,13 @@ func (s *ResourceService) ProcessSourceFile(filePath, ext string) (int, error) {
 				return 0, err
 			}
 
+			//将path转换为可访问地址
+			wp := row[6]
+			if wp == "" {
+				continue
+			}
+
+			np := utils.ConvertWindowsPathToURL(wp)
 
 			so := &models.Resource{
 				ResourceName: row[1],
@@ -92,6 +99,7 @@ func (s *ResourceService) ProcessSourceFile(filePath, ext string) (int, error) {
 				Course:       row[3],
 				Level1:       row[4],
 				Level2:       row[5],
+				Path: np,
 			}
 
 			sts = append(sts, so)

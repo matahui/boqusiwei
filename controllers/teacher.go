@@ -356,7 +356,7 @@ func TeacherAdd(c *gin.Context)  {
 		return
 	}
 
-	if req.Role == consts.AccountCateDirector {
+	if req.Role == 1 {
 		acc := strconv.Itoa(int(req.LoginNumber))
 		err = services.NewAccountService(db).Add([]*models.Account{
 			{

@@ -97,6 +97,11 @@ func (S *Class) Update(db *gorm.DB, id uint, st *Class) error {
 	return nil
 }
 
+
+func (S *Class) Del(db *gorm.DB, id uint) error {
+	return db.Unscoped().Where("id = ?", id).Delete(&Class{}).Error
+}
+
 func (S *Class) Add(db *gorm.DB, st []*Class) error {
 	error := db.Create(st).Error
 	if error != nil {

@@ -43,7 +43,7 @@ func (S *Resource)Info(db *gorm.DB, id uint) (*Resource, error) {
 	return &st, nil
 }
 
-func (S *Resource) List(db *gorm.DB, offset, limit int, lv1, lv2, name string) ([]*Resource, int64, int64, error) {
+func (S *Resource) List(db *gorm.DB, offset, limit int, lv1, lv2, name, age string) ([]*Resource, int64, int64, error) {
 	var (
 		sc []*Resource
 		total int64
@@ -62,6 +62,10 @@ func (S *Resource) List(db *gorm.DB, offset, limit int, lv1, lv2, name string) (
 
 	if name != "" {
 		query = query.Where("resource_name LIKE ?", "%"+name+"%")
+	}
+
+	if age != "" {
+		query = query.Where("age_group = ?", age)
 	}
 
 	//总数

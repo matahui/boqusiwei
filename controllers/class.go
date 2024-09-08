@@ -213,11 +213,7 @@ func ClassDelete(c *gin.Context)  {
 	}
 
 
-	err := services.NewClassService(db).Update(&models.Class{
-		IsDelete:1,
-	}, req.ID)
-
-
+	err := services.NewClassService(db).Delete(req.ID)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

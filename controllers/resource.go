@@ -19,6 +19,7 @@ func ResourceList(c *gin.Context) {
 		name = c.Query("name")
 		lv1 = c.Query("level_1")
 		lv2 = c.Query("level_2")
+		age = c.Query("age_group")
 		pageStr = c.Query("page")
 		pageSizeStr = c.Query("pageSize")
 		db = config.GetDB()
@@ -53,7 +54,7 @@ func ResourceList(c *gin.Context) {
 		limit = pageSize
 	)
 
-	st, err := services.NewResourceService(db).List(offset, limit, lv1, lv2, name)
+	st, err := services.NewResourceService(db).List(offset, limit, lv1, lv2, name, age)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

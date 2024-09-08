@@ -74,6 +74,10 @@ func (s *TeacherService) Add(st *models.Teacher, cids []uint) error  {
 	return nil
 }
 
+func (s *TeacherService) Delete(id uint) error {
+	return models.NewTeacher().Del(s.DB, id)
+}
+
 //处理excel
 func (s *TeacherService) ProcessTeacherFile(filePath, ext string, schoolID uint) (int, error) {
 	switch ext {

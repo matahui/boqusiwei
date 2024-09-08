@@ -139,6 +139,11 @@ func (S *Student) Add(db *gorm.DB, st *Student) error {
 	return nil
 }
 
+
+func (S *Student) Del(db *gorm.DB, id uint) error {
+	return db.Unscoped().Where("id = ?", id).Delete(&Student{}).Error
+}
+
 func (S *Student) BatchInsert(db *gorm.DB, sts []*Student) (int, error) {
 	result := db.Create(sts)
 	if result.Error != nil {

@@ -78,6 +78,10 @@ func (s *StudentService) Add(st *models.Student) error  {
 	return models.NewStudent().Add(s.DB, st)
 }
 
+func (s *StudentService) Delete(id uint) error {
+	return models.NewStudent().Del(s.DB, id)
+}
+
 //处理excel
 func (s *StudentService) ProcessStudentFile(filePath, ext string, schoolID, classID uint) (int, error) {
 	switch ext {
@@ -123,6 +127,7 @@ func (s *StudentService) ProcessStudentFile(filePath, ext string, schoolID, clas
 				StudentName: row[1],
 				SchoolID: schoolID,
 				ClassID: classID,
+				Password:"123456",
 			}
 
 			// 如果有家长姓名

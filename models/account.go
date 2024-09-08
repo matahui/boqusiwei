@@ -50,3 +50,12 @@ func (A *Account) GetAccountByAcc(db *gorm.DB, acc string) (*Account, error) {
 
 	return &account, nil
 }
+
+func (A *Account) Add(db * gorm.DB, a []*Account) error  {
+	result := db.Model(&Account{}).Create(&a)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}

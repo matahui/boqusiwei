@@ -232,11 +232,7 @@ func StudentDelete(c *gin.Context)  {
 	}
 
 
-	err := services.NewStudentService(db).Update(&models.Student{
-		IsDelete:1,
-	}, req.ID)
-
-
+	err := services.NewStudentService(db).Delete(req.ID)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return

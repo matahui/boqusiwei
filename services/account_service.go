@@ -20,3 +20,7 @@ func (s *AccountService) Login(acc, pwd string) (*models.Account, error, int) {
 func (s *AccountService) Info(acc string) (*models.Account, error) {
 	return models.NewAccount().GetAccountByAcc(s.DB, acc)
 }
+
+func (s *AccountService) Add(a []*models.Account) error {
+	return models.NewAccount().Add(s.DB, a)
+}

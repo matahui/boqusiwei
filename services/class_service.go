@@ -47,6 +47,11 @@ func (s *ClassService) Update(st *models.Class, id uint) error  {
 	return models.NewClass().Update(s.DB, id, st)
 }
 
+
+func (s *ClassService) Delete(id uint) error {
+	return models.NewClass().Del(s.DB, id)
+}
+
 func (s *ClassService) Add(st []*models.Class) error  {
 	return models.NewClass().Add(s.DB, st)
 }

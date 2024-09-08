@@ -27,8 +27,8 @@ type ResourceListResp struct {
 	Page int64 `json:"page"`
 }
 
-func (s *ResourceService) List(offset, limit int, lv1, lv2, name string) (*ResourceListResp, error) {
-	re, total, page, err := models.NewResource().List(s.DB, offset, limit, lv1, lv2, name)
+func (s *ResourceService) List(offset, limit int, lv1, lv2, name, age string) (*ResourceListResp, error) {
+	re, total, page, err := models.NewResource().List(s.DB, offset, limit, lv1, lv2, name, age)
 	if err != nil {
 		return nil, err
 	}

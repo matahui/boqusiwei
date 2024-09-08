@@ -296,11 +296,7 @@ func TeacherDelete(c *gin.Context)  {
 	}
 
 
-	err := services.NewTeacherService(db).Update(&models.Teacher{
-		IsDelete:1,
-	}, req.ID)
-
-
+	err := services.NewTeacherService(db).Delete(req.ID)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return
@@ -358,6 +354,23 @@ func TeacherAdd(c *gin.Context)  {
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return
+	}
+
+	if req.Role == consts.AccountCateDirector {
+		acc := strconv.Itoa(int(req.LoginNumber))
+		err = services.NewAccountService(db).Add([]*models.Account{
+			{
+				Account:    acc,
+				Password:   req.Password,
+				Cate:       int8(req.Role),
+				Nickname:   req.Name,
+			},
+		})
+
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

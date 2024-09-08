@@ -76,29 +76,60 @@ func Login(c *gin.Context) {
 		})
 	} else {
 		s, err := services.NewSchoolService(config.GetDB()).FindByAccount(req.Account)
-		if err != nil {
-			consts.RespondWithError(c, -20, "服务器内部错误")
-			return
-		}
-
-		if s.School != nil && len(s.School) > 0 {
-			c.JSON(http.StatusOK, gin.H{
-				"code" : 0,
-				"message": consts.CodeMsg[code],
-				"data" : &AccountLoginResponse{
-					Token:   token,
-					Type:    int(lc.Cate),
-					Account: lc.Account,
-					Name: lc.Nickname,
-					School:  School{
-						ID:   s.School[0].ID,
-						Name: s.School[0].Name,
+		if s != nil && err == nil {
+			if s.School != nil && len(s.School) > 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"code":    0,
+					"message": consts.CodeMsg[code],
+					"data": &AccountLoginResponse{
+						Token:   token,
+						Type:    int(lc.Cate),
+						Account: lc.Account,
+						Name:    lc.Nickname,
+						School: School{
+							ID:   s.School[0].ID,
+							Name: s.School[0].Name,
+						},
 					},
-				},
-			})
+				})
+			}
 		} else {
-			consts.RespondWithError(c, -20, "服务器内部错误")
-			return
+			ln, _ := strconv.Atoi(req.Account)
+			tea, err1 := services.NewTeacherService(config.GetDB()).FindByLN(int64(ln))
+			if err1 != nil {
+				consts.RespondWithError(c, -20, err1.Error())
+				return
+			}
+
+			sc, err := services.NewSchoolService(config.GetDB()).FindByID([]uint{tea.SchoolID})
+			if sc == nil || err != nil {
+				consts.RespondWithError(c, -20, err.Error())
+				return
+			}
+
+
+			vv, ok := sc[tea.SchoolID]
+			if ok {
+				c.JSON(http.StatusOK, gin.H{
+					"code":    0,
+					"message": consts.CodeMsg[code],
+					"data": &AccountLoginResponse{
+						Token:   token,
+						Type:    int(lc.Cate),
+						Account: lc.Account,
+						Name:    lc.Nickname,
+						School: School{
+							ID:   vv.ID,
+							Name: vv.Name,
+						},
+					},
+				})
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"code" : -1,
+					"msg" : "无学校信息",
+				})
+			}
 		}
 	}
 }

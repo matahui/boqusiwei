@@ -22,6 +22,15 @@ func (s *TeacherService) Info(id uint) (*models.Teacher, error) {
 	return models.NewTeacher().Info(s.DB, id)
 }
 
+func (s *TeacherService) FindByLN(ln int64) (*models.Teacher, error) {
+	var tea models.Teacher
+	result := s.DB.Model(&models.Teacher{}).Where("login_number = ?", ln).Find(&tea)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &tea, nil
+}
 type TeacherListResp struct {
 	Teacher []*models.Teacher `json:"teacher"`
 	Total  int64  `json:"total"`

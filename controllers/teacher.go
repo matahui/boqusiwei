@@ -362,7 +362,7 @@ func TeacherAdd(c *gin.Context)  {
 			{
 				Account:    acc,
 				Password:   req.Password,
-				Cate:       int8(req.Role),
+				Cate:       2,
 				Nickname:   req.Name,
 			},
 		})

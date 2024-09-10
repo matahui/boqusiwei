@@ -93,11 +93,11 @@ func ScheduleList(c *gin.Context) {
 
 type CalendarEntry struct {
 	Date      string     `json:"date"`
-	Resources []*models.Resource `json:"resources"`
+	Resources []*models.Resource2 `json:"resources"`
 }
 
 func generateCalendar(schedules []*models.Schedule, resources []*models.Resource, beginOfMonth, endOfMonth time.Time, ym string) []CalendarEntry {
-	calendarMap := make(map[string][]*models.Resource)
+	calendarMap := make(map[string][]*models.Resource2)
 
 	// 遍历每条排课记录
 	for _, schedule := range schedules {
@@ -120,7 +120,21 @@ func generateCalendar(schedules []*models.Schedule, resources []*models.Resource
 				break
 			}
 
-			calendarMap[dayStr] = append(calendarMap[dayStr], resource)
+			nr := &models.Resource2{
+				ScheduleID:   schedule.ID,
+				ID:           resource.ID,
+				ResourceName: resource.ResourceName,
+				AgeGroup:     resource.AgeGroup,
+				Course:       resource.Course,
+				Level1:       resource.Level1,
+				Level2:       resource.Level2,
+				Path:         resource.Path,
+				IsDelete:     resource.IsDelete,
+				CreateTime:   resource.CreateTime,
+				UpdateTime:   resource.UpdateTime,
+			}
+
+			calendarMap[dayStr] = append(calendarMap[dayStr], nr)
 			date = date.AddDate(0, 0, 1)
 		}
 	}
@@ -203,5 +217,89 @@ func ScheduleAdd(c *gin.Context) {
 		"message": "成功",
 		"code" : 0,
 		"data" : n,
+	})
+}
+
+
+func ScheduleDetail(c *gin.Context) {
+	var (
+		db = config.GetDB()
+		sid = c.Query("schedule_id")
+		scheduleID int
+		err error
+	)
+
+	if sid != "" {
+		scheduleID, _ = strconv.Atoi(sid)
+	} else {
+		consts.RespondWithError(c, -6, "参数异常")
+		return
+	}
+
+
+	sc, err := services.NewScheduleService(db).Info(uint(scheduleID))
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	// 返回成功响应
+	c.JSON(http.StatusOK, gin.H{
+		"message": "成功",
+		"code" : 0,
+		"data" : sc,
+	})
+}
+
+type ScheduleUpdateReq struct {
+	ScheduleID uint `json:"schedule_id"`
+	BeginTime  string `json:"begin_time"`
+	EndTime string `json:"end_time"`
+}
+
+func ScheduleUpdate(c *gin.Context) {
+	var (
+		req ScheduleUpdateReq
+		db = config.GetDB()
+		beginTime, endTime time.Time
+		err error
+	)
+
+	err = c.ShouldBindJSON(&req)
+	if err != nil {
+		consts.RespondWithError(c, -6, "参数异常")
+		return
+	}
+
+	beginTime, err = time.Parse(consts.TimeFormatLayout, req.BeginTime)
+	if err != nil {
+		consts.RespondWithError(c, -6, "begin_time格式错误，需要2006-01-02 15:04:05")
+		return
+	}
+
+	endTime, err = time.Parse(consts.TimeFormatLayout, req.EndTime)
+	if err != nil {
+		consts.RespondWithError(c, -6, "end_time格式错误，需要2006-01-02 15:04:05")
+		return
+	}
+
+
+
+	err = services.NewScheduleService(db).Update(&models.Schedule{
+		ID:         req.ScheduleID,
+		BeginTime:  beginTime,
+		EndTime:    endTime,
+
+	}, req.ScheduleID)
+
+	if err != nil {
+		consts.RespondWithError(c, -20, err.Error())
+		return
+	}
+
+	// 返回成功响应
+	c.JSON(http.StatusOK, gin.H{
+		"message": "成功",
+		"code" : 0,
 	})
 }

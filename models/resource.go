@@ -19,6 +19,20 @@ type Resource struct {
 	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
 }
 
+type Resource2 struct {
+	ScheduleID   uint      `json:"schedule_id"`
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	ResourceName string   `gorm:"type:varchar(255)" json:"resource_name"`
+	AgeGroup    string    `gorm:"type:varchar(255)" json:"age_group"`
+	Course    string    `gorm:"type:varchar(255)" json:"course"`
+	Level1    string    `gorm:"column:level_1;type:varchar(255)" json:"level_1"`
+	Level2    string    `gorm:"column:level_2;type:varchar(255)" json:"level_2"`
+	Path      string    `gorm:"column:path;type:varchar(255)" json:"path"`
+	IsDelete int        `gorm:"default:0" json:"is_delete"` // 0 表示未删除，1 表示已删除
+	CreateTime consts.CustomTime `gorm:"autoCreateTime" json:"create_time"`
+	UpdateTime consts.CustomTime `gorm:"autoUpdateTime" json:"update_time"`
+}
+
 type ResourceStudentShow struct {
 	ScheduleID   uint      `json:"schedule_id"`
 	ResourceName string   `gorm:"type:varchar(255)" json:"resource_name"`

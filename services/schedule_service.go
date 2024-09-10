@@ -13,9 +13,11 @@ type ScheduleService struct {
 func NewScheduleService(db *gorm.DB) *ScheduleService{
 	return &ScheduleService{DB:db}
 }
+
 func (s *ScheduleService) Info(id uint) (*models.Schedule, error) {
 	return models.NewSchedule().Info(s.DB, id)
 }
+
 func (s *ScheduleService) List(sid, cid uint, bt, et time.Time) ([]*models.Schedule, error) {
 	var sc []*models.Schedule
 	if err := s.DB.Where("school_id = ? AND class_id = ? AND ((begin_time <= ? AND end_time >= ?) OR (begin_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))",

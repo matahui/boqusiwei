@@ -28,6 +28,9 @@ func (S *Schedule)Info(db *gorm.DB, id uint) (*Schedule, error) {
 	var st Schedule
 	result := db.Where("id = ?", id).First(&st)
 	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, result.Error
 	}
 

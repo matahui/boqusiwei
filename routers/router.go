@@ -74,6 +74,8 @@ func SetupRouters(r *gin.Engine) {
 	{
 		schedule.GET("/list", controllers.ScheduleList)
 		schedule.POST("/add", controllers.ScheduleAdd)
+		schedule.GET("/detail", controllers.ScheduleDetail)
+		schedule.POST("/update", controllers.ScheduleUpdate)
 	}
 
 

@@ -303,7 +303,7 @@ func TeacherDelete(c *gin.Context)  {
 	}
 
 	//关联授课信息
-	n, err := services.NewTeacherClassAssignmentService(db).DeleteTeacher(req.ID)
+	_, err = services.NewTeacherClassAssignmentService(db).DeleteTeacher(req.ID)
 	if err != nil {
 		consts.RespondWithError(c, -20, err.Error())
 		return
@@ -313,7 +313,7 @@ func TeacherDelete(c *gin.Context)  {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "数据删除成功",
 		"code" : 0,
-		"data" : n,
+		"data" : 1,
 	})
 }
 

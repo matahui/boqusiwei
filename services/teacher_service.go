@@ -271,12 +271,13 @@ func (s *TeacherClassAssignmentService) Update(tid uint, cid []uint) error {
 }
 
 func (s *TeacherClassAssignmentService) DeleteTeacher(tid uint) (int64, error) {
-	result := s.DB.Model(&models.TeacherClassAssignment{}).Where("teacher_id = ? and is_delete = 0", tid).Update("is_delete", 1)
-	if result.Error != nil {
-		return 0, result.Error
+
+	err := s.DB.Unscoped().Where("teacher_id = ?", tid).Delete(&models.TeacherClassAssignment{}).Error
+	if err != nil {
+		return 0, err
 	}
 
-	return result.RowsAffected, nil
+	return 0, nil
 }
 
 func (s *TeacherClassAssignmentService) GetClassTeacher(cid uint) ([]*models.Teacher, error) {

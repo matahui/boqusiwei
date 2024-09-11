@@ -24,3 +24,7 @@ func (s *AccountService) Info(acc string) (*models.Account, error) {
 func (s *AccountService) Add(a []*models.Account) error {
 	return models.NewAccount().Add(s.DB, a)
 }
+
+func (s *AccountService) Delete(acc string) error {
+	return models.NewAccount().Del(s.DB, acc)
+}

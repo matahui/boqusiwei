@@ -293,6 +293,14 @@ func TeacherDelete(c *gin.Context)  {
 			consts.RespondWithError(c, -6, "参数异常")
 			return
 		}
+
+		acc := strconv.Itoa(int(st.LoginNumber))
+
+		err = services.NewAccountService(db).Delete(acc)
+		if err != nil {
+			consts.RespondWithError(c, -20, err.Error())
+			return
+		}
 	}
 
 

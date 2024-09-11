@@ -59,3 +59,7 @@ func (A *Account) Add(db * gorm.DB, a []*Account) error  {
 
 	return nil
 }
+
+func (A *Account) Del(db *gorm.DB, acc string) error {
+	return db.Unscoped().Where("account = ?", acc).Delete(&Account{}).Error
+}

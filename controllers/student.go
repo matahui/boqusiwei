@@ -176,18 +176,7 @@ func StudentUpdate(c *gin.Context) {
 		}
 	}
 
-	su, err := services.NewStudentService(db).InfoByLN(req.LoginNumber)
-	if err != nil {
-		consts.RespondWithError(c, -20, err.Error())
-		return
-	}
-
-	if su != nil && su.LoginNumber == req.LoginNumber {
-		consts.RespondWithError(c, -20, "登录账号已存在")
-		return
-	}
-
-	err = services.NewStudentService(db).Update(&models.Student{
+	err := services.NewStudentService(db).Update(&models.Student{
 		LoginNumber: req.LoginNumber,
 		StudentName: req.StudentName,
 		ParentName:  req.ParentName,

@@ -98,8 +98,10 @@ func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 		return nil, 0, 0, err
 	}
 
+	query = query.Order("create_time desc")
+
 	if limit > 0 {
-		err := query.Order("id desc").Limit(limit).Offset(offset).Find(&sc).Error
+		err := query.Limit(limit).Offset(offset).Find(&sc).Error
 		if err != nil {
 			return nil, 0, 0, err
 		}
@@ -110,7 +112,7 @@ func (S *Student) List(db *gorm.DB, offset, limit int, schoolID, classID uint, n
 	}
 
 
-	err := query.Order("id desc").Find(&sc).Error
+	err := query.Find(&sc).Error
 	if err != nil {
 		return nil, 0, 0, err
 	}

@@ -19,9 +19,9 @@ func TestClassList(t *testing.T) {
 	//4带姓名http://127.0.0.1:9123/api/Class/list?page=1&pageSize=10&name=郭
 	queryParams := utils.RequestParams{
 		Method: "GET",
-		URL:    "http://127.0.0.1:9123/api/class/list?page=1&pageSize=10&school_id=1&class_id=2",
+		URL:    "http://127.0.0.1:9123/api/class/list?page=2&pageSize=10&school_id=&class_id=",
 		Headers: map[string]string{
-			"Authorization" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYWRtaW4iLCJleHAiOjE3MjQxMzYzODUsImp0aSI6IjU5OTZiYmFhLWFkNjItNDExYy04Yjc1LTYxNmE3ZjAyNGMwZiJ9.f_BIpHLcT-L7Ouz2tYvWyqBkhiAis0t6p-BY2kclugI",
+			"Authorization" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiYWRtaW4iLCJleHAiOjE3MzAwODM3NTEsImp0aSI6ImJlN2E0YzMxLWYzMjUtNGVlMi1iZTg2LTc1Y2Y2MTNhM2ZjOSJ9.zBcGaSIwenjiC_yhGpcRNOl_0g662pKD_YAQgFFbPMY",
 			"account" : "admin",
 		},
 	}

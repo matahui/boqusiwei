@@ -105,9 +105,10 @@ func TeacherList(c *gin.Context) {
 
 
 		for i := 0; i < len(st.Teacher); i++ {
+			schoolName := ""
 			sn, ok := sc[st.Teacher[i].SchoolID]
-			if !ok || sn == nil {
-				continue
+			if ok || sn != nil {
+				schoolName = sn.Name
 			}
 
 			ts := &models.TeacherShow{
@@ -118,7 +119,7 @@ func TeacherList(c *gin.Context) {
 				TeacherName:   st.Teacher[i].TeacherName,
 				PhoneNumber:   st.Teacher[i].PhoneNumber,
 				SchoolID:      st.Teacher[i].SchoolID,
-				SchoolName:    sn.Name,
+				SchoolName:    schoolName,
 				Role:          st.Teacher[i].Role,
 				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 				TeachingClass: make([]*models.TeachClass, 0),
@@ -167,9 +168,10 @@ func TeacherList(c *gin.Context) {
 		}
 
 		for i := 0; i < len(st.Teacher); i++ {
+			schoolName := ""
 			sn, ok := sc[st.Teacher[i].SchoolID]
-			if !ok || sn == nil {
-				continue
+			if ok || sn != nil {
+				schoolName = sn.Name
 			}
 
 			ts := &models.TeacherShow{
@@ -180,7 +182,7 @@ func TeacherList(c *gin.Context) {
 				TeacherName:   st.Teacher[i].TeacherName,
 				PhoneNumber:   st.Teacher[i].PhoneNumber,
 				SchoolID:      st.Teacher[i].SchoolID,
-				SchoolName:    sn.Name,
+				SchoolName:    schoolName,
 				Role:          st.Teacher[i].Role,
 				RoleName:      consts.TeacherRole[st.Teacher[i].Role],
 				TeachingClass: make([]*models.TeachClass, 0),

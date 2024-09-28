@@ -102,11 +102,6 @@ func ClassList(c *gin.Context) {
 
 	for i := 0; i < len(st.Class); i++ {
 		if st != nil && st.Class[i] != nil {
-			sn, ok := sc[st.Class[i].SchoolID]
-			if !ok || sn == nil {
-				continue
-			}
-
 			cs := &models.ClassShow{
 				ID:         st.Class[i].ID,
 				CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),

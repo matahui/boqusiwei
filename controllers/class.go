@@ -102,12 +102,18 @@ func ClassList(c *gin.Context) {
 
 	for i := 0; i < len(st.Class); i++ {
 		if st != nil && st.Class[i] != nil {
+			schoolName := ""
+			sn, ok := sc[st.Class[i].SchoolID]
+			if ok || sn != nil {
+				schoolName = sn.Name
+			}
+
 			cs := &models.ClassShow{
 				ID:         st.Class[i].ID,
 				CustomID:   fmt.Sprintf("C%06d", st.Class[i].ID),
 				ClassName:  st.Class[i].ClassName,
 				SchoolID:   st.Class[i].SchoolID,
-				SchoolName: sc[st.Class[i].SchoolID].Name,
+				SchoolName: schoolName,
 				CreateTime: st.Class[i].CreateTime,
 				UpdateTime: st.Class[i].UpdateTime,
 				IsDelete:   st.Class[i].IsDelete,
